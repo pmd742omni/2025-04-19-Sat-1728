@@ -293,6 +293,11 @@ Progress Summary
    - Loaded `slot.png` from `icons/slot.png` as `slot_icon` in `GameHub`.
    - Applied `slot_icon` to slot buttons in both snake and tetris load menus for consistent visuals.
 
+65. Quit Without Saving (Timestamp: 2025-04-20 23:30:23)
+   - Added 'Quit Without Saving' option to the pause menu for both Snake and Tetris.
+   - Implemented `perform_quit_without_saving()` handler to return to game submenu without saving.
+   - Reuses back icon for consistent UI treatment.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

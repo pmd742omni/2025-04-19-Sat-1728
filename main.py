@@ -94,7 +94,7 @@ class OrbitButton:
             # render icon and text
             surf.blit(self.icon, (bg_cx - iw//2, bg_cy - ih//2))
             # draw text: center only for pause menu labels, keep icon position
-            if self.label in ("Continue", "Save & Quit"):
+            if self.label in ("Continue", "Save & Quit", "Quit Without Saving"):
                 tx = pill_rect.centerx - tw//2
                 surf.blit(text_surf, (tx, pill_rect.centery - th//2))
             else:
@@ -137,6 +137,10 @@ class OrbitButton:
             pygame.draw.rect(surf, WHITE, (ix + icon_w//4, iy + icon_h//4, icon_w//2, icon_h//2), 2)
         elif "Continue" in self.label:
             # continue icon
+            pygame.draw.rect(surf, LIGHT_CYAN, (ix, iy, icon_w, icon_h), border_radius=3)
+            pygame.draw.polygon(surf, WHITE, [(ix + icon_w//2, iy + icon_h//4), (ix + icon_w//4, iy + icon_h*3//4), (ix + icon_w*3//4, iy + icon_h*3//4)])
+        elif "Quit Without Saving" in self.label:
+            # quit without saving icon
             pygame.draw.rect(surf, LIGHT_CYAN, (ix, iy, icon_w, icon_h), border_radius=3)
             pygame.draw.polygon(surf, WHITE, [(ix + icon_w//2, iy + icon_h//4), (ix + icon_w//4, iy + icon_h*3//4), (ix + icon_w*3//4, iy + icon_h*3//4)])
         # label
@@ -697,8 +701,9 @@ class GameHub:
         unified_size = self.btn_size
         cx = WIDTH//2; mid_y = HEIGHT//2; offset_y = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Continue",    (cx, mid_y - offset_y//2), unified_size, self.resume_game, self.continue_icon),
-            OrbitButton("Save & Quit", (cx, mid_y + offset_y//2), unified_size, self.perform_save_quit, self.save_quit_icon),
+            OrbitButton("Continue",            (cx, mid_y - offset_y),   unified_size, self.resume_game,               self.continue_icon),
+            OrbitButton("Save & Quit",         (cx, mid_y),              unified_size, self.perform_save_quit,         self.save_quit_icon),
+            OrbitButton("Quit Without Saving", (cx, mid_y + offset_y),   unified_size, self.perform_quit_without_saving, self.back_icon),
         ]
         self.state = GameState.PAUSE
 
@@ -716,6 +721,12 @@ class GameHub:
         print(f"[SAVE] created {full}")
         if self.paused_state==GameState.SNAKE: self.open_snake_menu()
         else: self.open_tetris_menu()
+
+    def perform_quit_without_saving(self):
+        if self.paused_state == GameState.SNAKE:
+            self.open_snake_menu()
+        else:
+            self.open_tetris_menu()
 
     # Multi-slot load menus
     def open_load_snake_menu(self):
