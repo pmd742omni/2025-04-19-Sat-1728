@@ -1042,7 +1042,7 @@ class GameHub:
                 panel_w = btn_w + 70
                 panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
-                panel_x = (WIDTH - panel_w)//2; panel_y = (HEIGHT - panel_h)//2
+                panel_x = (WIDTH - panel_w)//2; panel_y = (HEIGHT - panel_h)//2 - 10
                 self.screen.blit(panel, (panel_x, panel_y))
                 # header pill "Slots"
                 pill_w, pill_h = self.btn_size
@@ -1092,7 +1092,7 @@ class GameHub:
                 panel_w = btn_w + 70; panel_h = int(HEIGHT * 0.85) + 50
                 panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
-                x = (WIDTH-panel_w)//2; y = (HEIGHT-panel_h)//2
+                x = (WIDTH-panel_w)//2; y = (HEIGHT-panel_h)//2 - 25
                 pill_h = self.btn_size[1]
                 panel_drop = pill_h // 2
                 y += panel_drop

@@ -312,6 +312,9 @@ Progress Summary
 69. Window Height Increase (Timestamp: 2025-04-21 00:07:10)
    - Increased the main window vertical size by 50px (from 750 to 800).
 
+70. Detail Panel Vertical Shift (Timestamp: 2025-04-21 00:21:12)
+   - Adjusted individual slot detail panel Y offset to move up by 25px for better alignment.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
