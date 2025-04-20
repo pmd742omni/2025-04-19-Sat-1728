@@ -699,11 +699,12 @@ class GameHub:
     def open_pause_menu(self):
         self.paused_state = self.state
         unified_size = self.btn_size
+        pause_size = (unified_size[0] + 50, unified_size[1])
         cx = WIDTH//2; mid_y = HEIGHT//2; offset_y = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Continue",            (cx, mid_y - offset_y),   unified_size, self.resume_game,               self.continue_icon),
-            OrbitButton("Save & Quit",         (cx, mid_y),              unified_size, self.perform_save_quit,         self.save_quit_icon),
-            OrbitButton("Quit Without Saving", (cx, mid_y + offset_y),   unified_size, self.perform_quit_without_saving, self.back_icon),
+            OrbitButton("Continue",            (cx, mid_y - offset_y),   pause_size, self.resume_game,               self.continue_icon),
+            OrbitButton("Save & Quit",         (cx, mid_y),              pause_size, self.perform_save_quit,         self.save_quit_icon),
+            OrbitButton("Quit Without Saving", (cx, mid_y + offset_y),   pause_size, self.perform_quit_without_saving, self.back_icon),
         ]
         self.state = GameState.PAUSE
 
