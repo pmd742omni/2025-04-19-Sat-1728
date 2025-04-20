@@ -779,10 +779,11 @@ class GameHub:
         cx, mid_y = WIDTH//2, HEIGHT//2; offset = self.btn_size[1] + 20
         self.detail_pill1_y = int(mid_y - 1.5*offset)
         self.detail_pill2_y = int(mid_y - 0.5*offset)
-        y_load = int(mid_y + 0.5*offset); y_back = int(mid_y + 1.5*offset)
+        y_load = int(mid_y + 0.5*offset); y_delete = int(mid_y + 1.5*offset); y_back = int(mid_y + 2.5*offset)
         self.buttons = [
-            OrbitButton("Load Game", (cx, y_load), self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
-            OrbitButton("Back", (cx, y_back), self.btn_size, lambda: self.open_load_snake_menu(), self.back_icon),
+            OrbitButton("Load Game",   (cx, y_load),   self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
+            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, None),
+            OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_snake_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_SNAKE
 
@@ -798,12 +799,25 @@ class GameHub:
         cx, mid_y = WIDTH//2, HEIGHT//2; offset = self.btn_size[1] + 20
         self.detail_pill1_y = int(mid_y - 1.5*offset)
         self.detail_pill2_y = int(mid_y - 0.5*offset)
-        y_load = int(mid_y + 0.5*offset); y_back = int(mid_y + 1.5*offset)
+        y_load = int(mid_y + 0.5*offset); y_delete = int(mid_y + 1.5*offset); y_back = int(mid_y + 2.5*offset)
         self.buttons = [
-            OrbitButton("Load Game", (cx, y_load), self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
-            OrbitButton("Back", (cx, y_back), self.btn_size, lambda: self.open_load_tetris_menu(), self.back_icon),
+            OrbitButton("Load Game",   (cx, y_load),   self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
+            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, None),
+            OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_tetris_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_TETRIS
+
+    def perform_delete_slot(self):
+        try:
+            os.remove(self.detail_filepath)
+            print(f"[DELETE] removed {self.detail_filepath}")
+        except Exception as e:
+            print(f"[ERROR] deleting slot: {e}")
+        # return to the appropriate load menu
+        if self.state == GameState.DETAIL_SAVE_SNAKE:
+            self.open_load_snake_menu()
+        else:
+            self.open_load_tetris_menu()
 
     def run(self):
         """
@@ -1077,7 +1091,7 @@ class GameHub:
                 self.screen.fill(BG_COLOR)
                 # outer panel
                 btn_w = max(b.size[0] for b in self.buttons)
-                panel_w = btn_w + 70; panel_h = int(HEIGHT * 0.85)
+                panel_w = btn_w + 70; panel_h = int(HEIGHT * 0.85) + 50
                 panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
                 x = (WIDTH-panel_w)//2; y = (HEIGHT-panel_h)//2

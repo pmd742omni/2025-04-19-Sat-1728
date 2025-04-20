@@ -301,6 +301,14 @@ Progress Summary
 66. Pause Menu Width Tweak (Timestamp: 2025-04-20 23:43:13)
    - Increased horizontal width of pause menu buttons (Continue, Save & Quit, Quit Without Saving) by 50px.
 
+67. Delete Slot Option (Timestamp: 2025-04-20 23:51:22)
+   - Added 'Delete Slot' option to both load menus (Snake and Tetris).
+   - Implemented `perform_delete_slot()` handler to remove the selected save file.
+   - Returns to the appropriate load menu after deletion.
+   
+68. Detail Panel Height Increase (Timestamp: 2025-04-20 23:59:02)
+   - Increased the height of the detailed slot info panel by 50px to accommodate additional options.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

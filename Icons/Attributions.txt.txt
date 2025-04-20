@@ -1,3 +1,6 @@
+delete.png
+<a href="https://www.flaticon.com/free-icons/dustbin" title="dustbin icons">Dustbin icons created by Vector Squad - Flaticon</a>
+
 Slot.png
 <a href="https://www.flaticon.com/free-icons/non-fungible-token" title="non fungible token icons">Non fungible token icons created by Vitaly Gorbachev - Flaticon</a>
 
