@@ -1,0 +1,36 @@
+Slot.png
+<a href="https://www.flaticon.com/free-icons/non-fungible-token" title="non fungible token icons">Non fungible token icons created by Vitaly Gorbachev - Flaticon</a>
+
+title.png
+<a href="https://www.flaticon.com/free-icons/title" title="title icons">Title icons created by Pixel perfect - Flaticon</a>
+
+Date & Time.png
+<a href="https://www.flaticon.com/free-icons/calendar" title="calendar icons">Calendar icons created by Freepik - Flaticon</a>
+
+Save & Quit.png
+<a href="https://www.flaticon.com/free-icons/save" title="save icons">Save icons created by Yogi Aprelliyanto - Flaticon</a>
+
+Continue
+<a href="https://www.flaticon.com/free-icons/roundabout" title="roundabout icons">Roundabout icons created by Pixelmeetup - Flaticon</a>
+
+back
+<a href="https://www.flaticon.com/free-icons/back" title="back icons">Back icons created by Freepik - Flaticon</a>
+
+New Game
+<a href="https://www.flaticon.com/free-icons/joystick" title="joystick icons">Joystick icons created by Good Ware - Flaticon</a>
+
+load game
+<a href="https://www.flaticon.com/free-icons/game-development" title="game development icons">Game development icons created by orvipixel - Flaticon</a>
+
+save game
+<a href="https://www.flaticon.com/free-icons/save-game" title="save game icons">Save game icons created by Arslan Haider - Flaticon</a>
+
+tetris
+<a href="https://www.flaticon.com/free-icons/tetris" title="tetris icons">Tetris icons created by Rahul Kaklotar - Flaticon</a>
+
+snake
+<a href="https://www.flaticon.com/free-icons/serpent" title="serpent icons">Serpent icons created by Unknown Depths - Flaticon</a>
+
+app icon
+<a href="https://www.flaticon.com/free-icons/video-controller" title="video controller icons">Video controller icons created by Yogi Aprelliyanto - Flaticon</a>
+
