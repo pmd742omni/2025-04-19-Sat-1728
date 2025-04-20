@@ -315,6 +315,12 @@ Progress Summary
 70. Detail Panel Vertical Shift (Timestamp: 2025-04-21 00:21:12)
    - Adjusted individual slot detail panel Y offset to move up by 25px for better alignment.
 
+71. Detail Panel Delete Slot Position Fix (Timestamp: 2025-04-21 01:05:20)
+   - Issue: "Delete Slot" button was not visible because rendering code assigned two y-positions (y_load and y_back) for three buttons, causing Delete and Back to overlap.
+   - Root Cause: The for-loop used `new_y = y_load if label=="Load Game" else y_back`, so Delete Slot fell at y_back and was overdrawn by Back.
+   - Fix: Introduced `y_delete` between `y_load` and `y_back`, and updated the loop to set `new_y` per button label (Load Game, Delete Slot, Back).
+   - Impact: Restores proper display and spacing of the Delete Slot button in the detailed save panels for both Snake and Tetris.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

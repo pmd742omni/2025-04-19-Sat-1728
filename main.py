@@ -143,6 +143,9 @@ class OrbitButton:
             # quit without saving icon
             pygame.draw.rect(surf, LIGHT_CYAN, (ix, iy, icon_w, icon_h), border_radius=3)
             pygame.draw.polygon(surf, WHITE, [(ix + icon_w//2, iy + icon_h//4), (ix + icon_w//4, iy + icon_h*3//4), (ix + icon_w*3//4, iy + icon_h*3//4)])
+        elif "Delete Slot" in self.label:
+            pygame.draw.rect(surf, LIGHT_CYAN, (ix, iy, icon_w, icon_h), border_radius=3)
+            pygame.draw.polygon(surf, WHITE, [(ix + icon_w//2, iy + icon_h//4), (ix + icon_w//4, iy + icon_h*3//4), (ix + icon_w*3//4, iy + icon_h*3//4)])
         # label
         text = font.render(self.label, True, WHITE)
         tr = text.get_rect(center=self.rect.center)
@@ -474,6 +477,14 @@ class GameHub:
             self.slot_icon = pygame.transform.smoothscale(raw, (w, h))
         except:
             self.slot_icon = None
+        # load delete slot button icon
+        try:
+            raw = pygame.image.load(os.path.join(BASE_DIR, 'icons','delete.png')).convert_alpha()
+            h = self.font.get_height()
+            w = raw.get_width() * h // raw.get_height()
+            self.delete_icon = pygame.transform.smoothscale(raw, (w, h))
+        except:
+            self.delete_icon = None
         # unify icon sizes to Save Progress icon dimensions
         if self.save_icon:
             size = self.save_icon.get_size()
@@ -497,6 +508,8 @@ class GameHub:
                 self.datetime_icon = pygame.transform.smoothscale(self.datetime_icon, size)
             if getattr(self, 'slot_icon', None):
                 self.slot_icon = pygame.transform.smoothscale(self.slot_icon, size)
+            if getattr(self, 'delete_icon', None):
+                self.delete_icon = pygame.transform.smoothscale(self.delete_icon, size)
         # compute uniform width for buttons
         gap, pad_x = 10, 20
         snake_txt_w = self.font.render("Play Snake", True, WHITE).get_width()
@@ -780,7 +793,7 @@ class GameHub:
         y_load = int(mid_y + 0.5*offset); y_delete = int(mid_y + 1.5*offset); y_back = int(mid_y + 2.5*offset)
         self.buttons = [
             OrbitButton("Load Game",   (cx, y_load),   self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
-            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, None),
+            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, self.delete_icon),
             OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_snake_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_SNAKE
@@ -800,7 +813,7 @@ class GameHub:
         y_load = int(mid_y + 0.5*offset); y_delete = int(mid_y + 1.5*offset); y_back = int(mid_y + 2.5*offset)
         self.buttons = [
             OrbitButton("Load Game",   (cx, y_load),   self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
-            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, None),
+            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, self.delete_icon),
             OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_tetris_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_TETRIS
@@ -1141,9 +1154,15 @@ class GameHub:
                 # draw Load/Back buttons directly below inner panel using inner_pad spacing
                 cx = WIDTH // 2
                 y_load = iy + info_h + pill_h + inner_pad*2
-                y_back = y_load + pill_h + inner_pad
+                y_delete = y_load + pill_h + inner_pad
+                y_back = y_delete + pill_h + inner_pad
                 for b in self.buttons:
-                    new_y = y_load if b.label == "Load Game" else y_back
+                    if b.label == "Load Game":
+                        new_y = y_load
+                    elif b.label == "Delete Slot":
+                        new_y = y_delete
+                    else:  # Back button
+                        new_y = y_back
                     b.center = (cx, new_y)
                     b.rect.center = b.center
                     b.pos = b.rect.topleft
