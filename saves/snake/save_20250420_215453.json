@@ -1,0 +1,1 @@
+{"game": "snake", "data": {"snake": [[10, 18]], "dir": [1, 0], "food": [36, 32], "powers": [], "score": 0, "active": null, "remaining_ms": 0, "active_mult": 1, "move_delay": 150}}

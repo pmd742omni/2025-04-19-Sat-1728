@@ -1,0 +1,305 @@
+PMD742OMNI Game Hub – Progress Documentation
+============================================
+
+Date: 2025-04-20 11:25:37
+
+Project Overview
+----------------
+A Python/Pygame multi-game application featuring:
+- Main menu interface
+- Snake and Tetris games
+- Game over screen
+- Save/Load functionality
+
+Progress Summary
+----------------
+
+1. Title & Logo Integration
+   - Added `draw_title()` to render "PMD742OMNI GAME HUB" inside a semi-transparent white pill.
+   - Integrated the game hub logo below the title text.
+   - Implemented vertical centering using dynamic group height calculations.
+   - Adjusted horizontal padding for proper text/icon fit.
+   - Applied smoother pill edges via `border_radius = pill_height/2`.
+   - Made pill size dynamic relative to the menu panel by passing `panel_rect` into `draw_title()`.
+
+2. UI Pill Size Adjustments
+   - Tuned side margins (`margin_x`) and vertical padding (`vpad`) for extra width and height.
+   - Ensured pill dimensions grow with panel width and content size.
+
+3. `OrbitButton` Class Enhancements
+   - Refactored from rotating icons to static rounded tablets.
+   - Extended constructor to accept an optional `icon` argument.
+   - Overrode `draw()` to calculate dynamic pill width/height for icon+text buttons.
+   - Updated hit area (`self.rect`, `self.pos`) to match the dynamic pill rectangle.
+
+4. Snake Button Icon
+   - Loaded `snake.png` from the `icons/` folder.
+   - Scaled the icon to match the menu font height.
+
+5. Snake Button Icon & Dynamic Button Sizing (Timestamp: 2025-04-20 11:25:37)
+   - Extended `OrbitButton` to accept an optional icon and dynamically calculate pill width/height for icon+text.
+   - Updated `draw()` to update `self.rect` and `self.pos` for accurate hover/click hit area.
+   - Loaded and scaled `snake.png` icon to menu font height and passed to "Play Snake" `OrbitButton`.
+   - Ensured the snake button pill expands to accommodate both text and icon.
+
+6. Tetris Button Icon & Dynamic Sizing (Timestamp: 2025-04-20 11:28:57)
+   - Loaded `tetris.png`, scaled to menu font height.
+   - Passed `self.tetris_icon` to "Play Tetris" OrbitButton.
+   - Ensured dynamic pill sizing logic applies for Tetris button.
+
+7. Uniform Button Width & Panel Padding (Timestamp: 2025-04-20 11:38:09)
+   - For icon-enabled OrbitButtons, enforced `pill_w = max(calculated_width, base_width)` so all buttons align.
+   - Increased menu panel horizontal margins from 20px to 40px per side for better spacing.
+
+8. Unified Snake & Tetris Button Sizing (Timestamp: 2025-04-20 11:40:06)
+   - Calculated `unified_w` from text and icon widths plus gap and padding.
+   - Applied `unified_size` to both "Play Snake" and "Play Tetris" OrbitButtons.
+
+9. Save Progress Button Icon & Dynamic Sizing (Timestamp: 2025-04-20 11:45:32)
+   - Loaded `save game.png` and scaled to menu font height.
+   - Computed `calc_save_w` and included in `unified_w` calculation.
+   - Passed `self.save_icon` and `unified_size` to the "Save Progress" OrbitButton.
+
+10. Circular Icon Backgrounds & Vertical Alignment (Timestamp: 2025-04-20 11:50:57)
+   - Updated `OrbitButton.draw` to render icons inside uniform circles (radius = pill_h/2).
+   - Ensured each icon is vertically centered within its circle.
+   - Adjusted pill width calculation to include circle diameter for consistent layout.
+
+11. Unified Icon Sizes & X-Alignment (Timestamp: 2025-04-20 11:58:51)
+   - Rescaled snake and tetris icons to match the Save Progress icon dimensions.
+   - Aligned icon circle centers at a fixed `pad_x` offset for consistent horizontal placement.
+   - All icon-enabled buttons now use the same `self.size` dimensions (same pill_w, pill_h).
+
+12. Dynamic Pill & Panel Sizing (Timestamp: 2025-04-20 12:04:20)
+   - Calculated pill height (`unified_h`) from icon/font height plus vertical padding (`vpad`).
+   - Updated background panel height dynamically to enclose all button centers plus vertical margins.
+   - Ensured all button titles and icons remain within their pills and the panel.
+
+13. Button & Panel Width Increase (Timestamp: 2025-04-20 12:38:29)
+   - Increased button pill width by 5px via `unified_size`.
+   - Expanded background panel width by 10px (`panel_w = btn_w + 90`).
+   - Maintained balanced margins for a consistent interface.
+
+14. Major Width Expansion (Timestamp: 2025-04-20 12:50:44)
+   - Added 100px to button pill width (`unified_size = (unified_w + 105, unified_h)`).
+   - Added 100px to panel width (`panel_w = btn_w + 190`).
+   - Ensured consistent margins and layout balance.
+
+15. Panel & Window Height Increase (Timestamp: 2025-04-20 12:54:00)
+   - Updated window dimensions from `800x600` to `800x700`.
+   - Added `panel_h += 100` to increase background panel vertical height by 100px.
+   - Confirmed title pill and buttons are fully visible within the expanded panel.
+
+16. Window Resize (Timestamp: 2025-04-20 12:58:49)
+   - Changed window dimensions to `900x750` for additional space.
+   - Ensured panel and button layouts adapt to new window size.
+
+17. Title Pill Width Reduction (Timestamp: 2025-04-20 13:02:15)
+   - Reduced title pill width by 5px (`pill_w = panel_rect.width - margin_x*2 - 5`).
+   - Maintained symmetrical margins for balanced look.
+
+18. Further Title Pill Reduction (Timestamp: 2025-04-20 13:07:20)
+   - Increased total horizontal reduction to 10px (`pill_w = panel_rect.width - margin_x*2 - 10`).
+   - Ensured consistent centering and balanced margins across window sizes.
+
+19. Dynamic Title Pill Scaling (Timestamp: 2025-04-20 13:12:56)
+   - Calculated raw title pill dimensions (`raw_w`, `raw_h`) then scaled by 75% (25% reduction).
+   - Centered the reduced pill within original side margins for balanced layout.
+   - Preserved rounded edges and proper positioning under the menu panel.
+
+20. Title Pill Vertical Shift (Timestamp: 2025-04-20 13:16:35)
+   - Introduced `delta_y = 10` in `draw_title` to move the title pill downward.
+   - Updated `pill_y` calculation to include `+ delta_y` for vertical offset.
+   - Improves spacing by positioning title pill lower within the panel.
+
+21. Panel Width Reduction (Timestamp: 2025-04-20 13:42:13)
+   - Changed horizontal margins from 190px to 70px (`panel_w = btn_w + 70`) for a narrower panel.
+
+22. Panel Height Adjustment (Timestamp: 2025-04-20 13:51:22)
+   - Replaced `panel_h += 70` with `panel_h - 70` to decrease panel height by 70px.
+
+23. Load Button Icon & Sizing (Timestamp: 2025-04-20 13:54:16)
+   - Loaded `load game.png` into `self.load_icon` and scaled to font height.
+   - Included `load_icon` in unified sizing logic (`calc_load_w` & `unified_w`).
+   - Updated `Load Progress` button to use `unified_size` and `load_icon`.
+
+24. Title Pill Upward Shift (Timestamp: 2025-04-20 14:02:36)
+   - Changed `delta_y` in `draw_title` from 80 to 30.
+   - Moves the title pill up by 50px for better alignment under the panel.
+
+25. Title Pill Height Increase (Timestamp: 2025-04-20 14:06:10)
+   - Added `pill_h += 2` in `draw_title` to increase title pill height by 2px.
+
+26. Title Pill Height Bump Adjustment (Timestamp: 2025-04-20 14:10:22)
+   - Changed `pill_h += 2` to `pill_h += 20` in `draw_title` for a 20px height increase.
+
+27. Panel Corner Smoothing (Timestamp: 2025-04-20 14:11:58)
+   - Updated menu panel corner radius from `min(panel_w, panel_h) // 4` to `min(panel_w, panel_h) // 2` for smoother, more rounded corners.
+
+28. Panel Corner Radius Adjustment (Timestamp: 2025-04-20 14:14:28)
+   - Changed menu panel corner radius from `// 2` to `// 3` for a balanced rounding effect.
+
+29. Window Title & Icon Update (Timestamp: 2025-04-20 14:19:45)
+   - Updated window caption to `PMD742OMNI HUB`.
+   - Modified `set_icon` to load `app icon.png` (32×32), with fallback to generated "GH" icon.
+
+30. Fallback Icon Text Update (Timestamp: 2025-04-20 14:23:41)
+   - Changed fallback icon letters in `set_icon` from `GH` to `PH`.
+
+31. Personal Hub Checkpoint (Timestamp: 2025-04-20 14:26:55)
+   - Officially rebranded the Game Hub to a Personal Hub: updated window title, icon, and UI elements.
+   - Cool feature: custom dynamic icon loading with graceful fallback and a highly polished, rounded panel for a sleek dashboard experience.
+
+32. Game-Specific Load Panel (Timestamp: 2025-04-20 14:32:35)
+   - Introduced separate “Load Snake” and “Load Tetris” buttons in the main menu.
+   - Added nested sub-panels grouping Play/Load controls for each game for clearer UI organization.
+
+33. Main Menu Cleanup (Timestamp: 2025-04-20 14:36:37)
+   - Removed `Save Progress` button from main menu to streamline per-game save/load flows.
+
+34. Main Menu Restructure (Timestamp: 2025-04-20 14:45:16)
+   - Simplified main menu to two game selectors (Snake, Tetris).
+   - Implemented game-specific submenus with “Start New Game” and “Load Game” buttons.
+   - Updated `GameState` to include submenu states.
+
+35. New Game Icon Support (Timestamp: 2025-04-20 15:12:41)
+   - Loaded `new game.png` as `self.new_icon`.
+   - Attached `new_icon` to “Start New Game” buttons in submenus.
+
+36. Back Button Support (Timestamp: 2025-04-20 15:22:34)
+   - Loaded `back.png` as `self.back_icon`.
+   - Added “Back” button to each game submenu and implemented `open_main_menu` to return to the main hub menu.
+
+37. Game-Specific Load Fix (Timestamp: 2025-04-20 15:28:19)
+   - Wrapped `load_progress` with `load_snake_game` and `load_tetris_game` methods.
+   - Submenu “Load Game” now correctly loads `snake_save.json` or `tetris_save.json`.
+
+38. Pause Menu & In-Game Controls (Timestamp: 2025-04-20 15:52:03)
+   - Added `GameState.PAUSE` and `paused_state` to track paused context.
+   - Implemented `open_pause_menu` displaying “Continue” and “Save & Quit” buttons.
+   - P-key now opens pause menu during gameplay.
+   - Added `resume_game` and `perform_save_quit` for continue and save-then-quit flows.
+
+39. Save & Quit Submenu Redirect (Timestamp: 2025-04-20 15:54:45)
+   - Modified `perform_save_quit` to call `open_snake_menu` or `open_tetris_menu` based on paused_state.
+   - Users return to the appropriate game’s submenu instead of the main hub menu after saving.
+
+40. Pause Menu Icon Update (Timestamp: 2025-04-20 16:06:56)
+   - Loaded `Save & Quit.png` as `self.save_quit_icon`.
+   - Loaded `Continue.png` as `self.continue_icon`.
+   - Unified pause menu icons to match pill sizing and attached them to `Continue` and `Save & Quit` buttons.
+
+41. Pause Button Centering (Timestamp: 2025-04-20 16:16:58)
+   - Adjusted padding logic in `OrbitButton.draw` to calculate `pad_x` for `Continue` and `Save & Quit` labels, centering the icon+text group within their pills.
+
+42. Dynamic Multi-Slot Save System (Timestamp: 2025-04-20 17:28:51)
+   - Uses `BASE_DIR` for absolute save paths and auto-creates `saves/snake` & `saves/tetris` directories.
+   - Migrates legacy single-slot saves (`snake_save.json`, `tetris_save.json`, `savegame.json`) into timestamped slot files.
+   - Auto-saves on **Save & Quit** with `save_YYYYMMDD_HHMMSS.json` filenames; removed manual save-name input flow.
+   - Added debug-print statements in load menus to log the save path and files found.
+
+43. Numbered Slots & Detailed Save Preview (Timestamp: 2025-04-20 17:54:09)
+   - Load menus now display "Slot N" labels rather than raw filenames.
+   - Selecting a slot opens a detailed view window matching the main menu dimensions.
+   - Added semi-transparent black pills showing the save title and timestamp.
+   - Detailed view includes "Load Game" and "Back" buttons styled consistently with other interface pills.
+
+44. Info Pill & Inner Panel Layout (Timestamp: 2025-04-20 18:09:49)
+   - Title and Date & Time pills now match dimensions of Load Game & Back buttons.
+   - Introduced transparent magenta inner panel behind the info pills, with rounded edges and padding.
+   - Title pill uses icon `title.png`; Date & Time pill uses `Date & Time.png`.
+   - Pills are placed on the magenta panel, which itself sits on the general background panel.
+
+45. Slot Header & Button Positioning (Timestamp: 2025-04-20 18:43:30)
+   - Added header pill displaying "Slot N" above the info panel instead of the main hub title.
+   - Raised the magenta inner panel closer to the header pill for tighter grouping.
+   - Icon circles on the info pills now use the pill background color for a cleaner look.
+   - Positioned "Load Game" and "Back" buttons directly below the magenta panel with consistent spacing.
+
+46. Panel Vertical Adjustment & Circle Color Update (Timestamp: 2025-04-20 18:49:16)
+   - Lowered the detail-save panel and its internal content (header pill, info panel, buttons) by half a pill height for balanced vertical alignment.
+   - Updated icon circles within info pills to match the semi-transparent black pill background.
+
+47. Button Spacing Tweak (Timestamp: 2025-04-20 18:57:50)
+   - Increased vertical gap between the magenta panel and the Load Game/Back buttons for better separation and readability.
+
+48. Deeper Button Separation (Timestamp: 2025-04-20 19:02:23)
+   - Moved "Load Game" and "Back" buttons down by an additional pill height to fully clear the magenta panel and remove overlap.
+
+49. Icon Circle Color Correction (Timestamp: 2025-04-20 19:06:49)
+   - Replaced blue (MED_CYAN) icon circles in info pills with semi-transparent black matching the pill background.
+
+50. Info Pill Color Swap (Timestamp: 2025-04-20 19:20:32)
+   - Updated info pills to use semi-transparent white backgrounds.
+   - Changed pill text color to black for better contrast.
+
+51. Panel Color Change (Timestamp: 2025-04-20 19:29:13)
+   - Switched inner pill container panel to cyan with 100-alpha transparency.
+
+52. Back Navigation Fix (Timestamp: 2025-04-20 19:36:19)
+   - Fixed "Back" button callbacks in load and detail views to correctly return to the previous slot menu using lambdas.
+   - Cleared mouse button events upon navigating to avoid unintended clicks.
+
+53. Scrollable Slots Panel (Timestamp: 2025-04-20 19:52:41)
+   - Wrapped slot load menus in a central panel matching the main menu dimensions.
+   - Added a "Slots" header pill at the top of the panel.
+   - Implemented vertical scrolling with mouse wheel to navigate through save slots.
+   - Initialized and bounded scroll offset for smooth navigation.
+
+54. Codebase Milestone: 1000+ Lines (Timestamp: 2025-04-20 20:00:55)
+   - `main.py` has exceeded 1000 lines of code, marking a significant development checkpoint.
+
+55. Arrow Key Scrolling (Timestamp: 2025-04-20 20:09:30)
+   - Enabled vertical navigation of the slots panel using Up/Down arrow keys.
+   - Unified scroll logic to use computed `max_scroll` for bounds checking.
+
+56. Slot Display Limits & Positioning (Timestamp: 2025-04-20 20:14:46)
+   - Restricted panel to show 5 slots at a time before enabling scroll.
+   - Increased spacing below header pill for slots (added extra 10px).  
+   - Adjusted clipping rect to only encompass the slot display area.
+
+57. Three Slots & Header Adjustment (Timestamp: 2025-04-20 20:23:39)
+   - Limited visible slots to 3 per view for a cleaner interface.
+   - Moved the "Slots" header pill down by 40px to align within the panel.
+
+58. Full Slot Visibility (Timestamp: 2025-04-20 20:28:32)
+   - Adjusted clipping rectangle to include half a button height above and below the slot area.
+   - Ensured the first slot is fully visible when starting a scroll.
+
+59. Increased Header-Slot Gap (Timestamp: 2025-04-20 20:32:01)
+   - Moved slot list down, adding extra 20px (total 40px) below the header pill for clearer separation.
+
+60. Further Header-Slot Gap Increase (Timestamp: 2025-04-20 20:36:14)
+   - Raised slot list start to 80px below the header pill for better visual spacing.
+
+61. Slot Pill Styling & Persistent Back (Timestamp: 2025-04-20 20:42:25)
+   - Styled slot buttons with white background & black text for clarity.
+   - Kept Back button colored cyan, fixed position always below the slot area during scrolling.
+
+62. Slot Panel Fixes (Timestamp: 2025-04-20 20:49:43)
+   - Strictly limited visible slots to 3 at a time, preventing overlap or cutoff.
+   - Added extra spacing between slots and Back button for clarity.
+   - Ensured Back button is always visible and not clipped.
+   - Vertically centered slot text for better readability.
+   - Only visible slots are drawn and clipped; Back button always drawn below slot area, never clipped.
+   - Moved Slots header down by an additional 20px for better alignment.
+
+63. Slot Pill Rect & Pos Sync (Timestamp: 2025-04-20 21:03:45)
+   - Switched slot pill drawing to use `self.rect` instead of manual pos/size for pixel-perfect alignment.
+   - Synchronized `pos` to `rect.topleft` after repositioning to keep hover detection and rendering consistent.
+   - Improved `OrbitButton.draw` for slot pills, eliminating previous misalignment issues.
+
+64. Slot Button Icon (Timestamp: 2025-04-20 21:20:51)
+   - Loaded `slot.png` from `icons/slot.png` as `slot_icon` in `GameHub`.
+   - Applied `slot_icon` to slot buttons in both snake and tetris load menus for consistent visuals.
+
+Next Steps
+----------
+- Refine save/load screens and game state persistence.
+- Continue building and polishing game logic and UI.
+- Define a modular plugin architecture (APIs, folder structure)
+- Build a Settings/Profile manager (user auth, preferences)
+- Create a Dashboard framework (widgets, layouts, theming)
+- Integrate cloud sync (save/load across devices)
+- Add unit tests & CI pipeline
+- Flesh out UX polish (responsive design, animations)
