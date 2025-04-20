@@ -5,7 +5,7 @@ from datetime import datetime
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Window
-WIDTH, HEIGHT = 900, 750
+WIDTH, HEIGHT = 900, 800
 # Colors
 CYAN = (0,255,255)
 MED_CYAN = (0,180,180)
@@ -724,10 +724,8 @@ class GameHub:
         else: self.open_tetris_menu()
 
     def perform_quit_without_saving(self):
-        if self.paused_state == GameState.SNAKE:
-            self.open_snake_menu()
-        else:
-            self.open_tetris_menu()
+        if self.paused_state==GameState.SNAKE: self.open_snake_menu()
+        else: self.open_tetris_menu()
 
     # Multi-slot load menus
     def open_load_snake_menu(self):

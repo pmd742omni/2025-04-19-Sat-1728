@@ -309,6 +309,9 @@ Progress Summary
 68. Detail Panel Height Increase (Timestamp: 2025-04-20 23:59:02)
    - Increased the height of the detailed slot info panel by 50px to accommodate additional options.
 
+69. Window Height Increase (Timestamp: 2025-04-21 00:07:10)
+   - Increased the main window vertical size by 50px (from 750 to 800).
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
