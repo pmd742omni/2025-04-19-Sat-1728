@@ -350,6 +350,14 @@ Progress Summary
 78. Game Over Indentation Fix (Timestamp: 2025-04-21 03:48:25)
    - Corrected indentation of `self.over.draw(...)` in the Game Over block, resolving an unindent error.
 
+79. Keyboard Navigation (Timestamp: 2025-04-21 04:37:19)
+   - Added Up/Down arrow key support to cycle focus through menu buttons.
+   - Enabled Enter/NumPad Enter key to trigger the focused button’s action.
+
+80. Focus Highlight (Timestamp: 2025-04-21 04:37:19)
+   - Focused buttons now render with LIGHT_CYAN background like hover.
+   - Added glowing yellow outline around hovered or focused buttons.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

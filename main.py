@@ -48,6 +48,7 @@ class OrbitButton:
         self.pos = self.rect.topleft
         self.action = action
         self.hovered = False
+        self.focused = False  # for keyboard nav highlight
         self.icon = icon
 
     def update(self, dt):
@@ -73,8 +74,11 @@ class OrbitButton:
                 tx = self.rect.centerx - tw//2
                 ty = self.rect.centery - th//2
             surf.blit(txt, (tx, ty))
+            if self.hovered or self.focused:
+                pygame.draw.rect(surf, YELLOW, self.rect.inflate(8,8), width=4, border_radius=self.size[1]//2+4)
             return
-        col = LIGHT_CYAN if self.hovered else MED_CYAN
+        # use focused as hover for color change too
+        col = LIGHT_CYAN if (self.hovered or self.focused) else MED_CYAN
         # dynamic icon button overrides static: draw uniform circle background then text
         if getattr(self, 'icon', None):
             text_surf = font.render(self.label, True, WHITE)
@@ -104,6 +108,8 @@ class OrbitButton:
                 surf.blit(text_surf, (tx, pill_rect.centery - th//2))
             else:
                 surf.blit(text_surf, (bg_cx + icon_bg_radius + gap, pill_rect.centery - th//2))
+            if self.hovered or self.focused:
+                pygame.draw.rect(surf, YELLOW, pill_rect.inflate(8,8), width=4, border_radius=icon_bg_radius+4)
             return
         # draw rounded rectangle tablet
         pygame.draw.rect(surf, col, self.rect, border_radius=self.size[1]//2)
@@ -155,6 +161,8 @@ class OrbitButton:
         text = font.render(self.label, True, WHITE)
         tr = text.get_rect(center=self.rect.center)
         surf.blit(text, tr)
+        if self.hovered or self.focused:
+            pygame.draw.rect(surf, YELLOW, self.rect.inflate(8,8), width=4, border_radius=self.size[1]//2+4)
 
     def handle_event(self, event):
         if event.type==pygame.MOUSEBUTTONDOWN and event.button==1 and self.hovered:
@@ -587,9 +595,11 @@ class GameHub:
         mid_y = HEIGHT//2
         offset = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Play Snake", (cx, mid_y - offset//2), unified_size, self.open_snake_menu, self.snake_icon),
+            OrbitButton("Play Snake", (cx, mid_y - offset//2), unified_size, self.open_snake_menu,  self.snake_icon),
             OrbitButton("Play Tetris", (cx, mid_y + offset//2), unified_size, self.open_tetris_menu, self.tetris_icon),
         ]
+        self.state = GameState.MENU
+        self.focus_index = 0
         self.scores = self.load_scores()
         self.over = None
         self.paused_state = None
@@ -712,6 +722,7 @@ class GameHub:
             OrbitButton("Back",           (cx, mid_y + offset_y), unified_size, self.open_main_menu,    self.back_icon),
         ]
         self.state = GameState.SUBMENU_SNAKE
+        self.focus_index = 0
 
     def open_tetris_menu(self):
         unified_size = self.btn_size
@@ -722,6 +733,7 @@ class GameHub:
             OrbitButton("Back",           (cx, mid_y + offset_y), unified_size, self.open_main_menu,    self.back_icon),
         ]
         self.state = GameState.SUBMENU_TETRIS
+        self.focus_index = 0
 
     def start_snake(self):
         self.game = SnakeGame(); self.state = GameState.SNAKE
@@ -739,6 +751,7 @@ class GameHub:
             OrbitButton("Play Tetris", (cx, mid_y + offset_y//2), unified_size, self.open_tetris_menu, self.tetris_icon),
         ]
         self.state = GameState.MENU
+        self.focus_index = 0
 
     def load_snake_game(self):
         self.load_progress(os.path.join(BASE_DIR, "snake_save.json"))
@@ -757,6 +770,7 @@ class GameHub:
             OrbitButton("Quit Without Saving", (cx, mid_y + offset_y),   pause_size, self.perform_quit_without_saving, self.back_icon),
         ]
         self.state = GameState.PAUSE
+        self.focus_index = 0
 
     def resume_game(self):
         self.state = self.paused_state
@@ -794,6 +808,7 @@ class GameHub:
         # back to game submenu
         self.buttons.append(OrbitButton("Back", (cx, int(start_y + len(files)*offset_y)), self.btn_size, lambda: self.open_snake_menu(), self.back_icon))
         self.state = GameState.LOAD_MENU_SNAKE
+        self.focus_index = 0
         self.slot_scroll = 0
         pygame.event.clear(pygame.MOUSEBUTTONDOWN)
 
@@ -812,7 +827,7 @@ class GameHub:
                 lambda f=fname, sn=i+1: self.open_detail_tetris(f, sn), self.slot_icon))
         self.buttons.append(OrbitButton("Back", (cx, int(start_y + len(files)*offset_y)), self.btn_size, lambda: self.open_tetris_menu(), self.back_icon))
         self.state = GameState.LOAD_MENU_TETRIS
-        self.slot_scroll = 0
+        self.focus_index = 0
         pygame.event.clear(pygame.MOUSEBUTTONDOWN)
 
     def open_detail_snake(self, fname, slot_no):
@@ -834,6 +849,7 @@ class GameHub:
             OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_snake_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_SNAKE
+        self.focus_index = 0
 
     def open_detail_tetris(self, fname, slot_no):
         path = os.path.join(BASE_DIR, 'saves','tetris', fname)
@@ -854,6 +870,7 @@ class GameHub:
             OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_tetris_menu(), self.back_icon),
         ]
         self.state = GameState.DETAIL_SAVE_TETRIS
+        self.focus_index = 0
 
     def perform_delete_slot(self):
         try:
@@ -906,6 +923,21 @@ class GameHub:
             events=pygame.event.get()
             for e in events:
                 if e.type==pygame.QUIT: pygame.quit(); sys.exit()
+            # keyboard navigation for menu states
+            if self.state in (GameState.MENU, GameState.SUBMENU_SNAKE, GameState.SUBMENU_TETRIS,
+                              GameState.PAUSE, GameState.LOAD_MENU_SNAKE, GameState.LOAD_MENU_TETRIS,
+                              GameState.DETAIL_SAVE_SNAKE, GameState.DETAIL_SAVE_TETRIS):
+                for e in events:
+                    if e.type==pygame.KEYDOWN:
+                        if e.key==pygame.K_UP:
+                            self.focus_index = (self.focus_index - 1) % len(self.buttons)
+                        elif e.key==pygame.K_DOWN:
+                            self.focus_index = (self.focus_index + 1) % len(self.buttons)
+                        elif e.key in (pygame.K_RETURN, pygame.K_KP_ENTER):
+                            self.buttons[self.focus_index].action()
+                # mark focus, keep hovered only for mouse
+                for i,b in enumerate(self.buttons):
+                    b.focused = (i == self.focus_index)
             if self.state==GameState.MENU:
                 for b in self.buttons: b.update(dt)
                 for e in events:
@@ -942,10 +974,8 @@ class GameHub:
                 self.screen.fill(BG_COLOR)
                 # draw panel background
                 btn_w = max(b.size[0] for b in self.buttons)
-                panel_w = btn_w + 70; btn_h = self.buttons[0].size[1]
-                centers_y = [b.center[1] for b in self.buttons]
-                dynamic_h = (max(centers_y)-min(centers_y)) + btn_h + 40
-                panel_h = max(dynamic_h, int(HEIGHT*0.85))
+                panel_w = btn_w + 70
+                panel_h = int(HEIGHT * 0.85)
                 panel = pygame.Surface((panel_w,panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
                 x=(WIDTH-panel_w)//2; y=(HEIGHT-panel_h)//2
@@ -959,10 +989,7 @@ class GameHub:
                     for b in self.buttons: b.handle_event(e)
                 self.screen.fill(BG_COLOR)
                 btn_w = max(b.size[0] for b in self.buttons)
-                panel_w = btn_w + 70; btn_h = self.buttons[0].size[1]
-                centers_y = [b.center[1] for b in self.buttons]
-                dynamic_h = (max(centers_y)-min(centers_y)) + btn_h + 40
-                panel_h = max(dynamic_h, int(HEIGHT*0.85))
+                panel_w = btn_w + 70; panel_h = int(HEIGHT * 0.85)
                 panel = pygame.Surface((panel_w,panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
                 x=(WIDTH-panel_w)//2; y=(HEIGHT-panel_h)//2
@@ -1085,6 +1112,7 @@ class GameHub:
                 # draw panel background
                 btn_w = max(b.size[0] for b in self.buttons)
                 panel_w = btn_w + 70
+                panel_h = int(HEIGHT * 0.85)
                 panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
                 panel_x = (WIDTH - panel_w)//2; panel_y = (HEIGHT - panel_h)//2
@@ -1150,6 +1178,7 @@ class GameHub:
                 # draw panel background
                 btn_w = max(b.size[0] for b in self.buttons)
                 panel_w = btn_w + 70
+                panel_h = int(HEIGHT * 0.85) + 50
                 panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
                 pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
                 panel_x = (WIDTH - panel_w)//2; panel_y = (HEIGHT - panel_h)//2 - 10
@@ -1160,7 +1189,8 @@ class GameHub:
                 pygame.draw.rect(hdr_pill, (0,0,0,150), hdr_pill.get_rect(), border_radius=pill_h//2)
                 hdr_surf = self.font.render("Slots", True, WHITE)
                 hdr_pill.blit(hdr_surf, ((pill_w - hdr_surf.get_width())//2, (pill_h - hdr_surf.get_height())//2))
-                hdr_x = panel_x + (panel_w - pill_w)//2; hdr_y = panel_y + 80
+                hdr_x = panel_x + (panel_w - pill_w)//2
+                hdr_y = panel_y + 80
                 self.screen.blit(hdr_pill, (hdr_x, hdr_y))
                 # draw scrollable buttons
                 content_start_y = hdr_y + pill_h + 80
