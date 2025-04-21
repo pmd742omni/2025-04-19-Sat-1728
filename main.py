@@ -416,12 +416,12 @@ class PingPongGame:
         self.score = 0
 
     def update(self, events):
-        for e in events:
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_w:
-                    self.left_y -= self.paddle_speed
-                elif e.key == pygame.K_s:
-                    self.left_y += self.paddle_speed
+        # smooth continuous paddle movement via key state polling
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            self.left_y -= self.paddle_speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            self.left_y += self.paddle_speed
         self.left_y = max(0, min(self.left_y, HEIGHT - self.paddle_h))
         self.ball_x += self.ball_speed_x
         self.ball_y += self.ball_speed_y

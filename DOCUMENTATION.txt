@@ -366,6 +366,10 @@ Progress Summary
    - Integrated multi-slot save/load under `saves/pingpong`, with scrollable slot menu and `slot_scroll` initialization.
    - Hooked scoring and Game Over screen to record and display Ping Pong scores.
 
+82. Smooth Paddle Controls (Timestamp: 2025-04-21 11:38:16)
+   - Switched `PingPongGame.update` to continuous `pygame.key.get_pressed()` polling for smooth paddle movement.
+   - Added Up/Down arrow key support alongside W/S for responsive control.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
