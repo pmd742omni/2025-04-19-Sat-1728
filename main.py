@@ -29,12 +29,16 @@ class GameState(Enum):
     SUBMENU_TETRIS = 3
     SNAKE = 4
     TETRIS = 5
-    GAME_OVER = 6
-    PAUSE = 7
-    LOAD_MENU_SNAKE = 8
-    LOAD_MENU_TETRIS = 9
-    DETAIL_SAVE_SNAKE = 10
-    DETAIL_SAVE_TETRIS = 11
+    PINGPONG = 6
+    GAME_OVER = 7
+    PAUSE = 8
+    LOAD_MENU_SNAKE = 9
+    LOAD_MENU_TETRIS = 10
+    DETAIL_SAVE_SNAKE = 11
+    DETAIL_SAVE_TETRIS = 12
+    SUBMENU_PINGPONG = 13
+    LOAD_MENU_PINGPONG = 14
+    DETAIL_SAVE_PINGPONG = 15
 
 # Orbiting Morphing Button
 class OrbitButton:
@@ -398,6 +402,48 @@ class TetrisGame:
         g.over = False
         return g
 
+# Ping Pong game
+class PingPongGame:
+    def __init__(self):
+        self.paddle_w, self.paddle_h = 10, 100
+        self.paddle_speed = 7
+        self.left_y = HEIGHT//2 - self.paddle_h//2
+        self.ball_radius = 8
+        self.ball_speed_x = 5
+        self.ball_speed_y = 5
+        self.ball_x = WIDTH//2
+        self.ball_y = HEIGHT//2
+        self.score = 0
+
+    def update(self, events):
+        for e in events:
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_w:
+                    self.left_y -= self.paddle_speed
+                elif e.key == pygame.K_s:
+                    self.left_y += self.paddle_speed
+        self.left_y = max(0, min(self.left_y, HEIGHT - self.paddle_h))
+        self.ball_x += self.ball_speed_x
+        self.ball_y += self.ball_speed_y
+        if self.ball_y - self.ball_radius <= 0 or self.ball_y + self.ball_radius >= HEIGHT:
+            self.ball_speed_y *= -1
+        if self.ball_x - self.ball_radius <= self.paddle_w + 20:
+            if self.left_y <= self.ball_y <= self.left_y + self.paddle_h:
+                self.ball_speed_x *= -1
+                self.score += 1
+            else:
+                return ("Ping Pong", self.score)
+        if self.ball_x + self.ball_radius >= WIDTH:
+            self.ball_speed_x *= -1
+        return None
+
+    def draw(self, surf, font):
+        surf.fill(BG_COLOR)
+        pygame.draw.rect(surf, WHITE, (20, self.left_y, self.paddle_w, self.paddle_h))
+        pygame.draw.circle(surf, WHITE, (int(self.ball_x), int(self.ball_y)), self.ball_radius)
+        score_surf = font.render(f"{self.score}", True, WHITE)
+        surf.blit(score_surf, (WIDTH - score_surf.get_width() - 20, 20))
+
 # Game Over Screen
 class GameOverScreen:
     def __init__(self, game, score): self.game=game; self.score=score
@@ -435,6 +481,14 @@ class GameHub:
             self.tetris_icon = pygame.transform.smoothscale(raw, (w, h))
         except:
             self.tetris_icon = None
+        # load ping pong button icon
+        try:
+            raw = pygame.image.load(os.path.join('icons','ping pong.png')).convert_alpha()
+            h = self.font.get_height()
+            w = raw.get_width() * h // raw.get_height()
+            self.pingpong_icon = pygame.transform.smoothscale(raw, (w, h))
+        except:
+            self.pingpong_icon = None
         # load save button icon
         try:
             raw = pygame.image.load(os.path.join('icons','save game.png')).convert_alpha()
@@ -555,6 +609,8 @@ class GameHub:
                 self.slot_icon = pygame.transform.smoothscale(self.slot_icon, size)
             if getattr(self, 'delete_icon', None):
                 self.delete_icon = pygame.transform.smoothscale(self.delete_icon, size)
+            if getattr(self, 'pingpong_icon', None):
+                self.pingpong_icon = pygame.transform.smoothscale(self.pingpong_icon, size)
         # compute uniform width for buttons
         gap, pad_x = 10, 20
         snake_txt_w = self.font.render("Play Snake", True, WHITE).get_width()
@@ -563,6 +619,9 @@ class GameHub:
         tetris_txt_w = self.font.render("Play Tetris", True, WHITE).get_width()
         tetris_icon_w = self.tetris_icon.get_width() if self.tetris_icon else 0
         calc_tetris_w = tetris_txt_w + tetris_icon_w + gap + pad_x*2
+        pingpong_txt_w = self.font.render("Play Ping Pong", True, WHITE).get_width()
+        pingpong_icon_w = self.pingpong_icon.get_width() if self.pingpong_icon else 0
+        calc_pingpong_w = pingpong_txt_w + pingpong_icon_w + gap + pad_x*2
         save_txt_w = self.font.render("Save Progress", True, WHITE).get_width()
         save_icon_w = self.save_icon.get_width() if self.save_icon else 0
         calc_save_w = save_txt_w + save_icon_w + gap + pad_x*2
@@ -575,7 +634,7 @@ class GameHub:
         back_txt_w = self.font.render("Back", True, WHITE).get_width()
         back_icon_w = self.back_icon.get_width() if getattr(self, 'back_icon', None) else 0
         calc_back_w = back_txt_w + back_icon_w + gap + pad_x*2
-        unified_w = max(calc_snake_w, calc_tetris_w, calc_save_w, calc_load_w, calc_new_w, calc_back_w, 180)
+        unified_w = max(calc_snake_w, calc_tetris_w, calc_pingpong_w, calc_save_w, calc_load_w, calc_new_w, calc_back_w, 180)
         # dynamic pill height: icon/font height + vertical padding (min height 70)
         vpad = 16
         icon_h = self.save_icon.get_height() if getattr(self, 'save_icon', None) else self.font.get_height()
@@ -590,13 +649,14 @@ class GameHub:
             self.title_icon = pygame.transform.smoothscale(self.title_icon, (50, 50))
         except:
             self.title_icon = None
-        # Main menu: two game selectors
+        # Main menu: three game selectors
         cx = WIDTH//2
         mid_y = HEIGHT//2
         offset = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Play Snake", (cx, mid_y - offset//2), unified_size, self.open_snake_menu,  self.snake_icon),
-            OrbitButton("Play Tetris", (cx, mid_y + offset//2), unified_size, self.open_tetris_menu, self.tetris_icon),
+            OrbitButton("Play Snake",     (cx, mid_y - offset),   unified_size, self.open_snake_menu,  self.snake_icon),
+            OrbitButton("Play Tetris",    (cx, mid_y),            unified_size, self.open_tetris_menu, self.tetris_icon),
+            OrbitButton("Play Ping Pong", (cx, mid_y + offset),   unified_size, self.open_pingpong_menu,    self.pingpong_icon),
         ]
         self.state = GameState.MENU
         self.focus_index = 0
@@ -606,6 +666,7 @@ class GameHub:
         # setup absolute save directories
         os.makedirs(os.path.join(BASE_DIR,'saves','snake'), exist_ok=True)
         os.makedirs(os.path.join(BASE_DIR,'saves','tetris'), exist_ok=True)
+        os.makedirs(os.path.join(BASE_DIR,'saves','pingpong'), exist_ok=True)
         # migrate legacy single-slot saves into multi-slot folders
         for game in ('snake','tetris'):
             old = os.path.join(BASE_DIR, f"{game}_save.json")
@@ -625,6 +686,7 @@ class GameHub:
                 destg = os.path.join(BASE_DIR, 'saves', game, f"savegame_{now}.json")
                 os.rename(oldg, destg)
                 print(f"[MIGRATE] moved generic savegame to {destg}")
+        self.slot_scroll = 0
 
     def set_icon(self):
         # load custom app icon, fallback to default GH
@@ -644,11 +706,13 @@ class GameHub:
 
     def play_tetris(self): self.game=TetrisGame(); self.state=GameState.TETRIS
 
+    def play_pingpong(self): self.game=PingPongGame(); self.state=GameState.PINGPONG
+
     def load_scores(self, filename="scores.json"):
         if os.path.exists(filename):
             with open(filename, "r") as f:
                 return json.load(f)
-        return {"snake": [], "tetris": []}
+        return {"snake": [], "tetris": [], "pingpong": []}
 
     def save_scores(self, filename="scores.json"):
         with open(filename, "w") as f:
@@ -688,6 +752,15 @@ class GameHub:
                 "x": self.game.x,
                 "y": self.game.y
             }}
+        elif state == GameState.PINGPONG:
+            data = {"game": "pingpong", "data": {
+                "left_y": self.game.left_y,
+                "ball_x": self.game.ball_x,
+                "ball_y": self.game.ball_y,
+                "ball_speed_x": self.game.ball_speed_x,
+                "ball_speed_y": self.game.ball_speed_y,
+                "score": self.game.score
+            }}
         else:
             return
         with open(filename, "w") as f:
@@ -704,6 +777,15 @@ class GameHub:
         elif data.get("game") == "tetris":
             self.game = TetrisGame.from_dict(data["data"])
             self.state = GameState.TETRIS
+        elif data.get("game") == "pingpong":
+            self.game = PingPongGame()
+            self.game.left_y = data["data"]["left_y"]
+            self.game.ball_x = data["data"]["ball_x"]
+            self.game.ball_y = data["data"]["ball_y"]
+            self.game.ball_speed_x = data["data"]["ball_speed_x"]
+            self.game.ball_speed_y = data["data"]["ball_speed_y"]
+            self.game.score = data["data"]["score"]
+            self.state = GameState.PINGPONG
 
     # Game-specific save wrappers
     def save_snake_game(self):
@@ -711,6 +793,9 @@ class GameHub:
 
     def save_tetris_game(self):
         self.save_progress(os.path.join(BASE_DIR, "tetris_save.json"))
+
+    def save_pingpong_game(self):
+        self.save_progress(os.path.join(BASE_DIR, "pingpong_save.json"))
 
     # Submenu navigation
     def open_snake_menu(self):
@@ -735,20 +820,35 @@ class GameHub:
         self.state = GameState.SUBMENU_TETRIS
         self.focus_index = 0
 
+    def open_pingpong_menu(self):
+        unified_size = self.btn_size
+        cx = WIDTH//2; mid_y = HEIGHT//2; offset_y = unified_size[1] + 20
+        self.buttons = [
+            OrbitButton("Start New Game", (cx, mid_y - offset_y), unified_size, self.start_pingpong,      self.new_icon),
+            OrbitButton("Load Game",      (cx, mid_y),            unified_size, self.open_load_pingpong_menu,  self.load_icon),
+            OrbitButton("Back",           (cx, mid_y + offset_y), unified_size, self.open_main_menu,    self.back_icon),
+        ]
+        self.state = GameState.SUBMENU_PINGPONG
+        self.focus_index = 0
+
     def start_snake(self):
         self.game = SnakeGame(); self.state = GameState.SNAKE
 
     def start_tetris(self):
         self.game = TetrisGame(); self.state = GameState.TETRIS
 
+    def start_pingpong(self):
+        self.game = PingPongGame(); self.state = GameState.PINGPONG
+
     def open_main_menu(self):
         unified_size = self.btn_size
         cx = WIDTH//2
         mid_y = HEIGHT//2
-        offset_y = unified_size[1] + 20
+        offset = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Play Snake", (cx, mid_y - offset_y//2), unified_size, self.open_snake_menu,  self.snake_icon),
-            OrbitButton("Play Tetris", (cx, mid_y + offset_y//2), unified_size, self.open_tetris_menu, self.tetris_icon),
+            OrbitButton("Play Snake",     (cx, mid_y - offset),   unified_size, self.open_snake_menu,  self.snake_icon),
+            OrbitButton("Play Tetris",    (cx, mid_y),            unified_size, self.open_tetris_menu, self.tetris_icon),
+            OrbitButton("Play Ping Pong", (cx, mid_y + offset),   unified_size, self.open_pingpong_menu,    self.pingpong_icon),
         ]
         self.state = GameState.MENU
         self.focus_index = 0
@@ -758,6 +858,9 @@ class GameHub:
 
     def load_tetris_game(self):
         self.load_progress(os.path.join(BASE_DIR, "tetris_save.json"))
+
+    def load_pingpong_game(self):
+        self.load_progress(os.path.join(BASE_DIR, "pingpong_save.json"))
 
     def open_pause_menu(self):
         self.paused_state = self.state
@@ -778,18 +881,20 @@ class GameHub:
     def perform_save_quit(self):
         # auto-save with timestamp + return to submenu
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
-        sub = 'snake' if self.paused_state==GameState.SNAKE else 'tetris'
+        sub = 'snake' if self.paused_state==GameState.SNAKE else 'tetris' if self.paused_state==GameState.TETRIS else 'pingpong'
         dir_path = os.path.join(BASE_DIR,'saves',sub)
         fname = f"save_{now}.json"
         full = os.path.join(dir_path,fname)
         self.save_progress(full)
         print(f"[SAVE] created {full}")
         if self.paused_state==GameState.SNAKE: self.open_snake_menu()
-        else: self.open_tetris_menu()
+        elif self.paused_state==GameState.TETRIS: self.open_tetris_menu()
+        else: self.open_pingpong_menu()
 
     def perform_quit_without_saving(self):
         if self.paused_state==GameState.SNAKE: self.open_snake_menu()
-        else: self.open_tetris_menu()
+        elif self.paused_state==GameState.TETRIS: self.open_tetris_menu()
+        else: self.open_pingpong_menu()
 
     # Multi-slot load menus
     def open_load_snake_menu(self):
@@ -828,6 +933,25 @@ class GameHub:
         self.buttons.append(OrbitButton("Back", (cx, int(start_y + len(files)*offset_y)), self.btn_size, lambda: self.open_tetris_menu(), self.back_icon))
         self.state = GameState.LOAD_MENU_TETRIS
         self.focus_index = 0
+        pygame.event.clear(pygame.MOUSEBUTTONDOWN)
+
+    def open_load_pingpong_menu(self):
+        path = os.path.join(BASE_DIR, 'saves','pingpong')
+        print(f"[DEBUG] open_load_pingpong_menu path: {path}")
+        files = sorted(f for f in os.listdir(path) if f.endswith('.json'))
+        print(f"[DEBUG] found save files: {files}")
+        cx, mid_y = WIDTH//2, HEIGHT//2; offset_y = self.btn_size[1] + 20
+        start_y = mid_y - ((len(files)-1)/2)*offset_y
+        self.buttons = []
+        for i, fname in enumerate(files):
+            y = int(start_y + i*offset_y)
+            label = f"Slot {i+1}"
+            self.buttons.append(OrbitButton(label, (cx, y), self.btn_size,
+                lambda f=fname, sn=i+1: self.open_detail_pingpong(f, sn), self.slot_icon))
+        self.buttons.append(OrbitButton("Back", (cx, int(start_y + len(files)*offset_y)), self.btn_size, lambda: self.open_pingpong_menu(), self.back_icon))
+        self.state = GameState.LOAD_MENU_PINGPONG
+        self.focus_index = 0
+        self.slot_scroll = 0
         pygame.event.clear(pygame.MOUSEBUTTONDOWN)
 
     def open_detail_snake(self, fname, slot_no):
@@ -872,6 +996,27 @@ class GameHub:
         self.state = GameState.DETAIL_SAVE_TETRIS
         self.focus_index = 0
 
+    def open_detail_pingpong(self, fname, slot_no):
+        path = os.path.join(BASE_DIR, 'saves','pingpong', fname)
+        name_no_ext = fname[:-5]
+        timestamp = name_no_ext[-15:]
+        title = name_no_ext[:-16] or 'save'
+        self.detail_title = title
+        self.detail_timestamp = timestamp
+        self.detail_filepath = path
+        self.detail_slot = slot_no
+        cx, mid_y = WIDTH//2, HEIGHT//2; offset = self.btn_size[1] + 20
+        self.detail_pill1_y = int(mid_y - 1.5*offset)
+        self.detail_pill2_y = int(mid_y - 0.5*offset)
+        y_load = int(mid_y + 0.5*offset); y_delete = int(mid_y + 1.5*offset); y_back = int(mid_y + 2.5*offset)
+        self.buttons = [
+            OrbitButton("Load Game",   (cx, y_load),   self.btn_size, lambda: self.load_progress(self.detail_filepath), self.load_icon),
+            OrbitButton("Delete Slot", (cx, y_delete), self.btn_size, self.perform_delete_slot, self.delete_icon),
+            OrbitButton("Back",        (cx, y_back),   self.btn_size, lambda: self.open_load_pingpong_menu(), self.back_icon),
+        ]
+        self.state = GameState.DETAIL_SAVE_PINGPONG
+        self.focus_index = 0
+
     def perform_delete_slot(self):
         try:
             os.remove(self.detail_filepath)
@@ -881,8 +1026,10 @@ class GameHub:
         # return to the appropriate load menu
         if self.state == GameState.DETAIL_SAVE_SNAKE:
             self.open_load_snake_menu()
-        else:
+        elif self.state == GameState.DETAIL_SAVE_TETRIS:
             self.open_load_tetris_menu()
+        else:
+            self.open_load_pingpong_menu()
 
     def run(self):
         """
@@ -925,8 +1072,9 @@ class GameHub:
                 if e.type==pygame.QUIT: pygame.quit(); sys.exit()
             # keyboard navigation for menu states
             if self.state in (GameState.MENU, GameState.SUBMENU_SNAKE, GameState.SUBMENU_TETRIS,
-                              GameState.PAUSE, GameState.LOAD_MENU_SNAKE, GameState.LOAD_MENU_TETRIS,
-                              GameState.DETAIL_SAVE_SNAKE, GameState.DETAIL_SAVE_TETRIS):
+                              GameState.SUBMENU_PINGPONG, GameState.PAUSE, GameState.LOAD_MENU_SNAKE, GameState.LOAD_MENU_TETRIS,
+                              GameState.LOAD_MENU_PINGPONG, GameState.DETAIL_SAVE_SNAKE, GameState.DETAIL_SAVE_TETRIS,
+                              GameState.DETAIL_SAVE_PINGPONG):
                 for e in events:
                     if e.type==pygame.KEYDOWN:
                         if e.key==pygame.K_UP:
@@ -995,6 +1143,20 @@ class GameHub:
                 x=(WIDTH-panel_w)//2; y=(HEIGHT-panel_h)//2
                 self.screen.blit(panel,(x,y))
                 draw_title(self.screen,self.font,self.tetris_icon, pygame.Rect(x,y,panel_w,panel_h), "TETRIS")
+                for b in self.buttons: b.draw(self.screen,self.font)
+            elif self.state==GameState.SUBMENU_PINGPONG:
+                # Ping Pong submenu
+                for b in self.buttons: b.update(dt)
+                for e in events:
+                    for b in self.buttons: b.handle_event(e)
+                self.screen.fill(BG_COLOR)
+                btn_w = max(b.size[0] for b in self.buttons)
+                panel_w = btn_w + 70; panel_h = int(HEIGHT * 0.85)
+                panel = pygame.Surface((panel_w,panel_h), pygame.SRCALPHA)
+                pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
+                x=(WIDTH-panel_w)//2; y=(HEIGHT-panel_h)//2
+                self.screen.blit(panel,(x,y))
+                draw_title(self.screen,self.font,self.pingpong_icon, pygame.Rect(x,y,panel_w,panel_h), "PING PONG")
                 for b in self.buttons: b.draw(self.screen,self.font)
             elif self.state==GameState.SNAKE:
                 # pause/save in game
@@ -1082,6 +1244,11 @@ class GameHub:
                         self.screen.blit(hint_text, (pill_x + pad_x, y_hi + (pill_h - hi_th)//2))
                     if res:
                         g,s=res; self.record_score(g,s); self.over=GameOverScreen(g,s); self.state=GameState.GAME_OVER
+            elif self.state==GameState.PINGPONG:
+                res = self.game.update(events)
+                self.game.draw(self.screen, self.font)
+                if res:
+                    g,s=res; self.record_score(g,s); self.over=GameOverScreen(g,s); self.state=GameState.GAME_OVER
             elif self.state==GameState.PAUSE:
                 for b in self.buttons: b.update(dt)
                 for e in events:
@@ -1221,7 +1388,75 @@ class GameHub:
                 back_btn.rect.center = back_btn.center
                 back_btn.pos = back_btn.rect.topleft
                 back_btn.draw(self.screen, self.font)
-            elif self.state in (GameState.DETAIL_SAVE_SNAKE, GameState.DETAIL_SAVE_TETRIS):
+            elif self.state==GameState.LOAD_MENU_PINGPONG:
+                # update and handle scroll events
+                for b in self.buttons: b.update(dt)
+                offset_y = self.btn_size[1] + 20
+                scroll_step = offset_y
+                panel_h = int(HEIGHT * 0.85)
+                slot_area_h = offset_y * 3
+                max_scroll = max(0, len(self.buttons)*offset_y - slot_area_h)
+                for e in events:
+                    if e.type==pygame.MOUSEBUTTONDOWN:
+                        if e.button==4:
+                            self.slot_scroll = max(self.slot_scroll - scroll_step, 0)
+                        elif e.button==5:
+                            self.slot_scroll = min(self.slot_scroll + scroll_step, max_scroll)
+                    elif e.type==pygame.KEYDOWN:
+                        if e.key==pygame.K_DOWN:
+                            self.slot_scroll = min(self.slot_scroll + scroll_step, max_scroll)
+                        elif e.key==pygame.K_UP:
+                            self.slot_scroll = max(self.slot_scroll - scroll_step, 0)
+                    for b in self.buttons: b.handle_event(e)
+                self.screen.fill(BG_COLOR)
+                # draw panel background
+                btn_w = max(b.size[0] for b in self.buttons)
+                panel_w = btn_w + 70
+                panel_h = int(HEIGHT * 0.85) + 50
+                panel = pygame.Surface((panel_w, panel_h), pygame.SRCALPHA)
+                pygame.draw.rect(panel, (*MED_CYAN,50), panel.get_rect(), border_radius=min(panel_w,panel_h)//3)
+                panel_x = (WIDTH - panel_w)//2; panel_y = (HEIGHT - panel_h)//2 - 10
+                self.screen.blit(panel, (panel_x, panel_y))
+                # header pill "Slots"
+                pill_w, pill_h = self.btn_size
+                hdr_pill = pygame.Surface((pill_w, pill_h), pygame.SRCALPHA)
+                pygame.draw.rect(hdr_pill, (0,0,0,150), hdr_pill.get_rect(), border_radius=pill_h//2)
+                hdr_surf = self.font.render("Slots", True, WHITE)
+                hdr_pill.blit(hdr_surf, ((pill_w - hdr_surf.get_width())//2, (pill_h - hdr_surf.get_height())//2))
+                hdr_x = panel_x + (panel_w - pill_w)//2
+                hdr_y = panel_y + 80
+                self.screen.blit(hdr_pill, (hdr_x, hdr_y))
+                # draw scrollable buttons
+                content_start_y = hdr_y + pill_h + 80
+                prev_clip = self.screen.get_clip()
+                clip_y = content_start_y - pill_h//2
+                clip_h = slot_area_h + pill_h
+                self.screen.set_clip(pygame.Rect(panel_x, clip_y, panel_w, clip_h))
+                slot_buttons = self.buttons[:-1]
+                back_btn = self.buttons[-1]
+                first_visible = self.slot_scroll // offset_y
+                slot_pad = 20
+                total_slots_h = 3 * self.btn_size[1] + 2 * 20  # 3 slots, 2 gaps
+                slot_area_y = content_start_y + (slot_area_h - total_slots_h)//2
+                for i in range(3):
+                    idx = first_visible + i
+                    if idx >= len(slot_buttons): break
+                    b = slot_buttons[idx]
+                    y = slot_area_y + i * (self.btn_size[1] + slot_pad)
+                    b.center = (panel_x + panel_w//2, y + self.btn_size[1]//2)
+                    b.rect.center = b.center
+                    b.pos = b.rect.topleft
+                    b.draw(self.screen, self.font)
+                self.screen.set_clip(prev_clip)
+                # draw Back button always below slot area, never clipped
+                back_gap = 40
+                by = content_start_y + slot_area_h + back_gap
+                back_btn.center = (panel_x + panel_w//2, by)
+                back_btn.rect.center = back_btn.center
+                back_btn.pos = back_btn.rect.topleft
+                back_btn.draw(self.screen, self.font)
+            elif self.state in (GameState.DETAIL_SAVE_SNAKE, GameState.DETAIL_SAVE_TETRIS,
+                                GameState.DETAIL_SAVE_PINGPONG):
                 # render detailed save view
                 for b in self.buttons: b.update(dt)
                 for e in events:  # handle back/load button clicks

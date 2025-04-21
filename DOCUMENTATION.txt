@@ -358,6 +358,14 @@ Progress Summary
    - Focused buttons now render with LIGHT_CYAN background like hover.
    - Added glowing yellow outline around hovered or focused buttons.
 
+81. Ping Pong Game Integration (Timestamp: 2025-04-21 05:14:10)
+   - Defined new `GameState.PINGPONG` and submenu/load/detail enum entries.
+   - Loaded and scaled `ping pong.png` icon; unified icon sizing with other buttons.
+   - Added "Play Ping Pong" button in main menu and dedicated Ping Pong submenu.
+   - Implemented `PingPongGame` class with `update()` for paddle/ball mechanics and `draw()` for rendering.
+   - Integrated multi-slot save/load under `saves/pingpong`, with scrollable slot menu and `slot_scroll` initialization.
+   - Hooked scoring and Game Over screen to record and display Ping Pong scores.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
