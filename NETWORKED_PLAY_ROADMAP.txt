@@ -1,0 +1,38 @@
+Networked Play Small-Step Roadmap
+================================
+
+1. Refactor game logic
+   - Extract a pure `SnakeGame.tick(input_dirs)` method that advances game state based on player input.
+   - Retain the existing `update(events)` wrapper, delegating to `tick()` internally.
+
+2. Define a wire protocol
+   - Choose JSON for messages:
+     • `{ "type": "input",  "player": 1, "dir": [0, 1] }`
+     • `{ "type": "state",  "snakes": [...], "food": [x, y], "lives": [...] }`
+   - Implement helpers to serialize/deserialize these messages.
+
+3. Build the game server (`server.py`)
+   - Listen on a TCP or UDP socket for client connections.
+   - Assign each client a player ID upon connect.
+   - Hold one authoritative `SnakeGame` instance.
+   - In a fixed‑rate loop (e.g. 15 Hz):
+     • Collect queued input messages from clients.
+     • Call `game.tick(collected_inputs)` to advance state.
+     • Broadcast the updated state message to all clients.
+
+4. Build the client stub (`client.py`)
+   - Connect to the game server socket.
+   - Run the Pygame loop:
+     • Poll local controls (WASD or arrows) → send `{ type: "input" }` messages.
+     • Receive `{ type: "state" }` messages → overwrite local `SnakeGame.snakes`, `food`, `lives`.
+     • Call the existing `draw()` to render the synchronized state.
+
+5. Local end-to-end test
+   - Run `server.py` locally.
+   - Launch two instances of `client.py` on the same machine.
+   - Verify each client only controls its own snake, and both view the same synchronized playfield.
+
+6. Later enhancements
+   - Add latency compensation (interpolation/prediction).
+   - Support reconnection, lag handling, and more than two players.
+   - Implement UDP vs TCP trade‑offs and packet loss recovery.

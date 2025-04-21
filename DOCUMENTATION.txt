@@ -376,6 +376,14 @@ Progress Summary
    - Mapped WASD controls for Player 1 and Arrow Keys for Player 2.
    - Implemented per-player snakes with individual lives, respawn logic, and distinct colors.
 
+84. Networked Multiplayer Roadmap (Timestamp: 2025-04-21 14:17:34)
+   - Extracted a pure `SnakeGame.tick(input_dirs)` approach for headless state updates.
+   - Defined JSON messages for input (`{"type":"input","player":X,"dir":[dx,dy]}`) and state (`{"type":"state","snakes":...,"food":[x,y],"lives":[...]}`).
+   - Outlined `server.py` to maintain authoritative game state, process client inputs, and broadcast state at a fixed rate.
+   - Outlined `client.py` to send directional inputs and render incoming state via Pygame's existing `draw()`.
+   - Suggested testing locally by running one server and two clients to verify sync and controls.
+   - Planned enhancements: latency compensation (interpolation/prediction), reconnection handling, and support for more than two players.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
