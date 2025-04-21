@@ -1,3 +1,9 @@
+score.png
+<a href="https://www.flaticon.com/free-icons/customer-satisfaction" title="customer satisfaction icons">Customer satisfaction icons created by Uniconlabs - Flaticon</a>
+
+hints.png
+<a href="https://www.flaticon.com/free-icons/hint" title="hint icons">Hint icons created by Anggara - Flaticon</a>
+
 delete.png
 <a href="https://www.flaticon.com/free-icons/dustbin" title="dustbin icons">Dustbin icons created by Vector Squad - Flaticon</a>
 

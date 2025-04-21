@@ -331,6 +331,19 @@ Progress Summary
    - Recomputed grid cols/rows to subtract margins; added offset_x/offset_y.
    - Shifted rendering of food, power-ups, and snake segments by offsets to align within the new boundary.
 
+74. Score & Hint Icon Integration (Timestamp: 2025-04-21 03:07:14)
+   - Loaded `score.png` and `hints.png` icons in `GameHub.__init__`.
+   - Rendered icon+text for score and pause hint instead of plain text.
+
+75. Centered Score & Hint Pills (Timestamp: 2025-04-21 03:20:50)
+   - Computed unified pill dimensions to fit larger content.
+   - Centered two cyan pills on X-axis at `TOP_MARGIN/2` and `HEIGHT - BOTTOM_MARGIN/2`.
+   - Drew equal-sized CYAN pills behind score and hint content.
+
+76. Transparent White Pills & Black Text (Timestamp: 2025-04-21 03:25:11)
+   - Updated pill backgrounds to semi-transparent white (`alpha=150`).
+   - Changed score and hint text rendering to BLACK for contrast.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

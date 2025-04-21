@@ -275,10 +275,10 @@ class SnakeGame:
             pygame.draw.rect(surf,pu["color"],(pu["pos"][0]*self.cell + self.offset_x,pu["pos"][1]*self.cell + self.offset_y,self.cell,self.cell))
         for seg in self.snake:
             pygame.draw.rect(surf, MED_CYAN, (seg[0]*self.cell + self.offset_x,seg[1]*self.cell + self.offset_y,self.cell,self.cell))
-        txt=font.render(f"Score: {self.score}",True,WHITE); surf.blit(txt,(5,5))
         if self.active:
             rem=(self.end_time-pygame.time.get_ticks())//1000
             txt2=font.render(f"{self.active}:{rem}",True,WHITE); surf.blit(txt2,(5,30))
+
     @classmethod
     def from_dict(cls,data):
         g = cls()
@@ -506,6 +506,22 @@ class GameHub:
             self.delete_icon = pygame.transform.smoothscale(raw, (w, h))
         except:
             self.delete_icon = None
+        # load score display icon
+        try:
+            raw = pygame.image.load(os.path.join('icons','score.png')).convert_alpha()
+            h = self.font.get_height()
+            w = raw.get_width() * h // raw.get_height()
+            self.score_icon = pygame.transform.smoothscale(raw, (w, h))
+        except:
+            self.score_icon = None
+        # load pause hint icon
+        try:
+            raw = pygame.image.load(os.path.join('icons','hints.png')).convert_alpha()
+            h = self.font.get_height()
+            w = raw.get_width() * h // raw.get_height()
+            self.hint_icon = pygame.transform.smoothscale(raw, (w, h))
+        except:
+            self.hint_icon = None
         # unify icon sizes to Save Progress icon dimensions
         if self.save_icon:
             size = self.save_icon.get_size()
@@ -962,8 +978,38 @@ class GameHub:
                 if self.state == GameState.SNAKE:
                     res=self.game.update(events)
                     self.game.draw(self.screen,self.font)
-                    hint = self.font.render("Press P to Pause", True, WHITE)
-                    self.screen.blit(hint, (WIDTH-hint.get_width()-10, HEIGHT-hint.get_height()-10))
+                    # render score and hint in centered cyan pills
+                    pad_x, pad_y = 10, 5
+                    sc_text = self.font.render(str(self.game.score), True, BLACK)
+                    sc_tw, sc_th = sc_text.get_size()
+                    sc_iw, sc_ih = self.score_icon.get_size() if self.score_icon else (0,0)
+                    hint_text = self.font.render("Press P to Pause", True, BLACK)
+                    hi_tw, hi_th = hint_text.get_size()
+                    hi_iw, hi_ih = self.hint_icon.get_size() if self.hint_icon else (0,0)
+                    content_w = max(sc_iw + pad_x + sc_tw, hi_iw + pad_x + hi_tw)
+                    pill_w = content_w + pad_x*2
+                    pill_h = max(sc_ih, sc_th, hi_ih, hi_th) + pad_y*2
+                    pill_x = (WIDTH - pill_w)//2
+                    cy_sc = TOP_MARGIN//2; y_sc = cy_sc - pill_h//2
+                    cy_hi = HEIGHT - BOTTOM_MARGIN//2; y_hi = cy_hi - pill_h//2
+                    # transparent white background pill for score
+                    pill_surf = pygame.Surface((pill_w, pill_h), pygame.SRCALPHA)
+                    pygame.draw.rect(pill_surf, (255,255,255,150), pill_surf.get_rect(), border_radius=pill_h//2)
+                    self.screen.blit(pill_surf, (pill_x, y_sc))
+                    if self.score_icon:
+                        self.screen.blit(self.score_icon, (pill_x + pad_x, y_sc + (pill_h - sc_ih)//2))
+                        self.screen.blit(sc_text, (pill_x + pad_x + sc_iw + pad_x, y_sc + (pill_h - sc_th)//2))
+                    else:
+                        self.screen.blit(sc_text, (pill_x + pad_x, y_sc + (pill_h - sc_th)//2))
+                    # transparent white background pill for hint
+                    pill_surf2 = pygame.Surface((pill_w, pill_h), pygame.SRCALPHA)
+                    pygame.draw.rect(pill_surf2, (255,255,255,150), pill_surf2.get_rect(), border_radius=pill_h//2)
+                    self.screen.blit(pill_surf2, (pill_x, y_hi))
+                    if self.hint_icon:
+                        self.screen.blit(self.hint_icon, (pill_x + pad_x, y_hi + (pill_h - hi_ih)//2))
+                        self.screen.blit(hint_text, (pill_x + pad_x + hi_iw + pad_x, y_hi + (pill_h - hi_th)//2))
+                    else:
+                        self.screen.blit(hint_text, (pill_x + pad_x, y_hi + (pill_h - hi_th)//2))
                     if res:
                         g,s=res; self.record_score(g,s); self.over=GameOverScreen(g,s); self.state=GameState.GAME_OVER
             elif self.state==GameState.TETRIS:
@@ -975,8 +1021,38 @@ class GameHub:
                 if self.state == GameState.TETRIS:
                     res=self.game.update(events)
                     self.game.draw(self.screen,self.font)
-                    hint = self.font.render("Press P to Pause", True, WHITE)
-                    self.screen.blit(hint, (WIDTH-hint.get_width()-10, HEIGHT-hint.get_height()-10))
+                    # render score and hint in centered cyan pills
+                    pad_x, pad_y = 10, 5
+                    sc_text = self.font.render(str(self.game.score), True, BLACK)
+                    sc_tw, sc_th = sc_text.get_size()
+                    sc_iw, sc_ih = self.score_icon.get_size() if self.score_icon else (0,0)
+                    hint_text = self.font.render("Press P to Pause", True, BLACK)
+                    hi_tw, hi_th = hint_text.get_size()
+                    hi_iw, hi_ih = self.hint_icon.get_size() if self.hint_icon else (0,0)
+                    content_w = max(sc_iw + pad_x + sc_tw, hi_iw + pad_x + hi_tw)
+                    pill_w = content_w + pad_x*2
+                    pill_h = max(sc_ih, sc_th, hi_ih, hi_th) + pad_y*2
+                    pill_x = (WIDTH - pill_w)//2
+                    cy_sc = TOP_MARGIN//2; y_sc = cy_sc - pill_h//2
+                    cy_hi = HEIGHT - BOTTOM_MARGIN//2; y_hi = cy_hi - pill_h//2
+                    # transparent white background pill for score
+                    pill_surf = pygame.Surface((pill_w, pill_h), pygame.SRCALPHA)
+                    pygame.draw.rect(pill_surf, (255,255,255,150), pill_surf.get_rect(), border_radius=pill_h//2)
+                    self.screen.blit(pill_surf, (pill_x, y_sc))
+                    if self.score_icon:
+                        self.screen.blit(self.score_icon, (pill_x + pad_x, y_sc + (pill_h - sc_ih)//2))
+                        self.screen.blit(sc_text, (pill_x + pad_x + sc_iw + pad_x, y_sc + (pill_h - sc_th)//2))
+                    else:
+                        self.screen.blit(sc_text, (pill_x + pad_x, y_sc + (pill_h - sc_th)//2))
+                    # transparent white background pill for hint
+                    pill_surf2 = pygame.Surface((pill_w, pill_h), pygame.SRCALPHA)
+                    pygame.draw.rect(pill_surf2, (255,255,255,150), pill_surf2.get_rect(), border_radius=pill_h//2)
+                    self.screen.blit(pill_surf2, (pill_x, y_hi))
+                    if self.hint_icon:
+                        self.screen.blit(self.hint_icon, (pill_x + pad_x, y_hi + (pill_h - hi_ih)//2))
+                        self.screen.blit(hint_text, (pill_x + pad_x + hi_iw + pad_x, y_hi + (pill_h - hi_th)//2))
+                    else:
+                        self.screen.blit(hint_text, (pill_x + pad_x, y_hi + (pill_h - hi_th)//2))
                     if res:
                         g,s=res; self.record_score(g,s); self.over=GameOverScreen(g,s); self.state=GameState.GAME_OVER
             elif self.state==GameState.PAUSE:
