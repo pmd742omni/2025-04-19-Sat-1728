@@ -370,6 +370,12 @@ Progress Summary
    - Switched `PingPongGame.update` to continuous `pygame.key.get_pressed()` polling for smooth paddle movement.
    - Added Up/Down arrow key support alongside W/S for responsive control.
 
+83. Snake Single & Multiplayer Mode (Timestamp: 2025-04-21 13:35:27)
+   - Introduced separate "Single Player" and "Multiplayer" options in the Snake submenu via `OrbitButton`.
+   - Extended `SnakeGame.__init__` to accept a `num_players` parameter (1 or 2).
+   - Mapped WASD controls for Player 1 and Arrow Keys for Player 2.
+   - Implemented per-player snakes with individual lives, respawn logic, and distinct colors.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

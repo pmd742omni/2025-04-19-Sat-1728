@@ -213,105 +213,97 @@ def draw_title(surf, font, icon, panel_rect, title_str="PMD742OMNI GAME HUB"):
 
 # Snake game
 class SnakeGame:
-    def __init__(self):
+    def __init__(self, num_players=2):
         self.cell=20
         self.cols=(WIDTH - 2*SIDE_MARGIN) // self.cell
         self.rows=(HEIGHT - TOP_MARGIN - BOTTOM_MARGIN) // self.cell
         self.offset_x = SIDE_MARGIN
         self.offset_y = TOP_MARGIN
+        self.num_players = num_players
+        self.player_colors = [MED_CYAN, MAGENTA][:num_players]
         self.reset()
+
     def reset(self):
-        self.snake=[(self.cols//2,self.rows//2)]
-        self.dir=(1,0)
+        self.snakes = []
+        self.dirs = []
+        self.lives = [3] * self.num_players
+        if self.num_players == 1:
+            start = (self.cols//2, self.rows//2)
+            self.snakes = [[start]]
+            self.dirs = [(1,0)]
+        else:
+            p1 = (self.cols//4, self.rows//2)
+            p2 = (3*self.cols//4, self.rows//2)
+            self.snakes = [[p1], [p2]]
+            self.dirs = [(1,0), (-1,0)]
         self.spawn_food()
-        self.powers=[]
-        self.score=0
-        self.active=None; self.end_time=0
-        self.last_move=pygame.time.get_ticks(); self.move_delay=150
+        self.powers = []
+        self.last_move = pygame.time.get_ticks()
+        self.move_delay = 150
+
     def spawn_food(self):
+        occupied = [seg for s in self.snakes for seg in s]
         while True:
-            p=(random.randrange(self.cols), random.randrange(self.rows))
-            if p not in self.snake: break
-        self.food=p
-    def spawn_power(self):
-        types=[("speed",YELLOW,0.5),("slow",BLUE,2),("inv",MAGENTA,1)]
-        t=types[random.randrange(len(types))]
-        while True:
-            p=(random.randrange(self.cols), random.randrange(self.rows))
-            if p!=self.food and p not in self.snake: break
-        self.powers.append({"type":t[0],"pos":p,"color":t[1],"mult":t[2]})
+            p = (random.randrange(self.cols), random.randrange(self.rows))
+            if p not in occupied:
+                break
+        self.food = p
+
     def update(self, events):
-        now=pygame.time.get_ticks()
+        # handle input: WASD for P1, arrows for P2
         for e in events:
-            if e.type==pygame.KEYDOWN:
-                if e.key in (pygame.K_UP,pygame.K_w): self.dir=(0,-1)
-                if e.key in (pygame.K_DOWN,pygame.K_s): self.dir=(0,1)
-                if e.key in (pygame.K_LEFT,pygame.K_a): self.dir=(-1,0)
-                if e.key in (pygame.K_RIGHT,pygame.K_d): self.dir=(1,0)
-        delay=self.move_delay
-        if self.active in ("speed","slow"): delay=int(self.move_delay*self.powerspeed)
-        if now-self.last_move>delay:
-            self.last_move=now
-            # calculate new head position and boundary check
-            new_x = self.snake[0][0] + self.dir[0]
-            new_y = self.snake[0][1] + self.dir[1]
-            if new_x < 0 or new_x >= self.cols or new_y < 0 or new_y >= self.rows:
-                return ("Snake", self.score)
-            head = (new_x, new_y)
-            if head in self.snake and self.active!="inv":
-                return ("Snake", self.score)
-            self.snake.insert(0, head)
-            if head == self.food:
-                self.score += 1
-                # increase speed with each food
-                self.move_delay = max(50, self.move_delay - 5)
-                self.spawn_food()
-                if random.random() < 0.2:
-                    self.spawn_power()
-            else:
-                self.snake.pop()
-            for pu in self.powers:
-                if head==pu["pos"]:
-                    self.active=pu["type"]; self.powerspeed=pu["mult"]
-                    self.end_time=now+7000
-                    self.powers.remove(pu); break
-        if self.active and now>self.end_time:
-            self.active=None
+            if e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_w: self.dirs[0] = (0,-1)
+                elif e.key == pygame.K_s: self.dirs[0] = (0,1)
+                elif e.key == pygame.K_a: self.dirs[0] = (-1,0)
+                elif e.key == pygame.K_d: self.dirs[0] = (1,0)
+                if self.num_players>1:
+                    if e.key == pygame.K_UP: self.dirs[1] = (0,-1)
+                    elif e.key == pygame.K_DOWN: self.dirs[1] = (0,1)
+                    elif e.key == pygame.K_LEFT: self.dirs[1] = (-1,0)
+                    elif e.key == pygame.K_RIGHT: self.dirs[1] = (1,0)
+        now = pygame.time.get_ticks()
+        if now - self.last_move > self.move_delay:
+            self.last_move = now
+            for i in range(self.num_players):
+                if not self.snakes[i]: continue
+                x,y = self.snakes[i][0]
+                dx,dy = self.dirs[i]
+                nh = (x+dx, y+dy)
+                lost = (nh[0]<0 or nh[0]>=self.cols or nh[1]<0 or nh[1]>=self.rows or nh in self.snakes[i])
+                if not lost and self.num_players>1:
+                    for j in range(self.num_players):
+                        if j!=i and nh in self.snakes[j]: lost=True; break
+                if lost:
+                    self.lives[i] -= 1
+                    if self.lives[i] > 0:
+                        start = ((self.cols//2,self.rows//2) if self.num_players==1 else ((self.cols//4,self.rows//2) if i==0 else (3*self.cols//4,self.rows//2)))
+                        self.snakes[i] = [start]
+                        self.dirs[i] = (1,0) if i==0 else (-1,0)
+                    else:
+                        self.snakes[i] = []
+                    continue
+                self.snakes[i].insert(0, nh)
+                if nh == self.food:
+                    self.lives[i] += 1
+                    self.spawn_food()
+                else:
+                    self.snakes[i].pop()
         return None
+
     def draw(self,surf,font):
         surf.fill(BG_COLOR)
-        # draw boundary around play area
         pygame.draw.rect(surf, WHITE, (self.offset_x, self.offset_y, self.cols*self.cell, self.rows*self.cell), 2)
         pygame.draw.rect(surf, LIGHT_CYAN, (self.food[0]*self.cell + self.offset_x, self.food[1]*self.cell + self.offset_y, self.cell, self.cell))
-        for pu in self.powers:
-            pygame.draw.rect(surf,pu["color"],(pu["pos"][0]*self.cell + self.offset_x,pu["pos"][1]*self.cell + self.offset_y,self.cell,self.cell))
-        for seg in self.snake:
-            pygame.draw.rect(surf, MED_CYAN, (seg[0]*self.cell + self.offset_x,seg[1]*self.cell + self.offset_y,self.cell,self.cell))
-        if self.active:
-            rem=(self.end_time-pygame.time.get_ticks())//1000
-            txt2=font.render(f"{self.active}:{rem}",True,WHITE); surf.blit(txt2,(5,30))
-
-    @classmethod
-    def from_dict(cls,data):
-        g = cls()
-        g.snake = [tuple(pos) for pos in data['snake']]
-        g.dir = tuple(data['dir'])
-        g.food = tuple(data['food'])
-        g.powers = [{'type':p['type'],'pos':tuple(p['pos']),'color':tuple(p['color']),'mult':p['mult']} for p in data['powers']]
-        g.score = data['score']
-        g.active = data['active']
-        now = pygame.time.get_ticks()
-        rem = data.get('remaining_ms',0)
-        if g.active and rem>0:
-            g.end_time = now + rem
-            if g.active in ('speed','slow'):
-                g.powerspeed = data.get('active_mult',1)
-        else:
-            g.active = None
-            g.end_time = 0
-        g.move_delay = data.get('move_delay',g.move_delay)
-        g.last_move = now
-        return g
+        for i, snake in enumerate(self.snakes):
+            col = self.player_colors[i]
+            for seg in snake:
+                pygame.draw.rect(surf, col, (seg[0]*self.cell + self.offset_x, seg[1]*self.cell + self.offset_y, self.cell, self.cell))
+        # display lives
+        for i in range(self.num_players):
+            txt = font.render(f"P{i+1} Lives: {self.lives[i]}", True, WHITE)
+            x = 10 if i==0 else WIDTH - txt.get_width() - 10
+            surf.blit(txt, (x, 10))
 
 # Tetris game
 class TetrisGame:
@@ -731,14 +723,11 @@ class GameHub:
         state = self.paused_state or self.state
         if state == GameState.SNAKE:
             data = {"game": "snake", "data": {
-                "snake": self.game.snake,
-                "dir": self.game.dir,
+                "snakes": [list(seg) for seg in self.game.snakes],
+                "dirs": self.game.dirs,
+                "lives": self.game.lives,
                 "food": self.game.food,
                 "powers": self.game.powers,
-                "score": self.game.score,
-                "active": self.game.active,
-                "remaining_ms": max(0, self.game.end_time - pygame.time.get_ticks()) if self.game.active else 0,
-                "active_mult": getattr(self.game, "powerspeed", 1),
                 "move_delay": self.game.move_delay
             }}
         elif state == GameState.TETRIS:
@@ -772,10 +761,26 @@ class GameHub:
         with open(filename, "r") as f:
             data = json.load(f)
         if data.get("game") == "snake":
-            self.game = SnakeGame.from_dict(data["data"])
+            self.game = SnakeGame()
+            self.game.snakes = [tuple(seg) for seg in data["data"]["snakes"]]
+            self.game.dirs = tuple(data["data"]["dirs"])
+            self.game.lives = data["data"]["lives"]
+            self.game.food = tuple(data["data"]["food"])
+            self.game.powers = [{'type':p['type'],'pos':tuple(p['pos']),'color':tuple(p['color']),'mult':p['mult']} for p in data["data"]["powers"]]
+            self.game.move_delay = data["data"]["move_delay"]
             self.state = GameState.SNAKE
         elif data.get("game") == "tetris":
-            self.game = TetrisGame.from_dict(data["data"])
+            self.game = TetrisGame()
+            self.game.grid = [[tuple(cell) if cell else None for cell in row] for row in data["data"]["grid"]]
+            self.game.score = data["data"]["score"]
+            self.game.level = data["data"]["level"]
+            self.game.lines = data["data"]["lines"]
+            pygame.time.set_timer(self.game.gravity_event, max(50,500-(self.game.level-1)*50))
+            self.game.shape = data["data"]["shape"]
+            self.game.rot = data["data"]["rot"]
+            self.game.pattern = self.game.shapes[self.game.shape][self.game.rot]
+            self.game.x = data["data"]["x"]
+            self.game.y = data["data"]["y"]
             self.state = GameState.TETRIS
         elif data.get("game") == "pingpong":
             self.game = PingPongGame()
@@ -802,9 +807,10 @@ class GameHub:
         unified_size = self.btn_size
         cx = WIDTH//2; mid_y = HEIGHT//2; offset_y = unified_size[1] + 20
         self.buttons = [
-            OrbitButton("Start New Game", (cx, mid_y - offset_y), unified_size, self.start_snake,      self.new_icon),
-            OrbitButton("Load Game",      (cx, mid_y),            unified_size, self.open_load_snake_menu,   self.load_icon),
-            OrbitButton("Back",           (cx, mid_y + offset_y), unified_size, self.open_main_menu,    self.back_icon),
+            OrbitButton("Single Player", (cx, mid_y - offset_y*3//2), unified_size, self.start_snake_single, self.new_icon),
+            OrbitButton("Multiplayer",   (cx, mid_y - offset_y//2),   unified_size, self.start_snake,        self.new_icon),
+            OrbitButton("Load Game",     (cx, mid_y + offset_y//2),   unified_size, self.open_load_snake_menu, self.load_icon),
+            OrbitButton("Back",          (cx, mid_y + offset_y*3//2), unified_size, self.open_main_menu,      self.back_icon),
         ]
         self.state = GameState.SUBMENU_SNAKE
         self.focus_index = 0
@@ -831,14 +837,17 @@ class GameHub:
         self.state = GameState.SUBMENU_PINGPONG
         self.focus_index = 0
 
+    def start_snake_single(self):
+        self.game = SnakeGame(1)
+        self.state = GameState.SNAKE
+
     def start_snake(self):
-        self.game = SnakeGame(); self.state = GameState.SNAKE
+        self.game = SnakeGame(2)
+        self.state = GameState.SNAKE
 
-    def start_tetris(self):
-        self.game = TetrisGame(); self.state = GameState.TETRIS
+    def start_tetris(self): self.game = TetrisGame(); self.state = GameState.TETRIS
 
-    def start_pingpong(self):
-        self.game = PingPongGame(); self.state = GameState.PINGPONG
+    def start_pingpong(self): self.game = PingPongGame(); self.state = GameState.PINGPONG
 
     def open_main_menu(self):
         unified_size = self.btn_size
@@ -1169,7 +1178,7 @@ class GameHub:
                     self.game.draw(self.screen,self.font)
                     # render score and hint in centered cyan pills
                     pad_x, pad_y = 10, 5
-                    sc_text = self.font.render(str(self.game.score), True, BLACK)
+                    sc_text = self.font.render(str(self.game.lives[0]), True, BLACK)
                     sc_tw, sc_th = sc_text.get_size()
                     sc_iw, sc_ih = self.score_icon.get_size() if self.score_icon else (0,0)
                     hint_text = self.font.render("Press P to Pause", True, BLACK)
