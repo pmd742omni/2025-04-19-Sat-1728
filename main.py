@@ -1268,7 +1268,9 @@ class GameHub:
                 continue
             elif self.state==GameState.GAME_OVER:
                 for e in events:
-                    if e.type==pygame.MOUSEBUTTONDOWN: self.state=GameState.MENU
+                    # allow click or Enter key to return to main menu
+                    if e.type==pygame.MOUSEBUTTONDOWN or (e.type==pygame.KEYDOWN and e.key in (pygame.K_RETURN, pygame.K_KP_ENTER)):
+                        self.state = GameState.MENU
                 self.over.draw(self.screen,self.font)
             pygame.display.flip()
 

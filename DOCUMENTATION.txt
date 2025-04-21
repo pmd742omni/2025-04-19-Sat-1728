@@ -344,6 +344,12 @@ Progress Summary
    - Updated pill backgrounds to semi-transparent white (`alpha=150`).
    - Changed score and hint text rendering to BLACK for contrast.
 
+77. Game Over Return Key (Timestamp: 2025-04-21 03:39:43)
+   - Enabled pressing Enter/NumPad Enter alongside mouse click to exit Game Over screen to the main menu.
+
+78. Game Over Indentation Fix (Timestamp: 2025-04-21 03:48:25)
+   - Corrected indentation of `self.over.draw(...)` in the Game Over block, resolving an unindent error.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.
