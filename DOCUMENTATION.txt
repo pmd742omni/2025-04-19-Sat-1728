@@ -321,6 +321,16 @@ Progress Summary
    - Fix: Introduced `y_delete` between `y_load` and `y_back`, and updated the loop to set `new_y` per button label (Load Game, Delete Slot, Back).
    - Impact: Restores proper display and spacing of the Delete Slot button in the detailed save panels for both Snake and Tetris.
 
+72. Snake Boundary & Speed Enhancements (Timestamp: 2025-04-21 02:57:36)
+   - Added wall collision detection in SnakeGame.update: no wrap-around; game over on hitting a wall.
+   - Introduced dynamic speed increase: eating food reduces move_delay by 5ms per food (min 50ms).
+   - Drew a white border around the play area in SnakeGame.draw.
+
+73. Snake Playfield Margin Adjustments (Timestamp: 2025-04-21 02:57:36)
+   - Defined TOP_MARGIN=100, SIDE_MARGIN=80, BOTTOM_MARGIN=100 to inset the grid.
+   - Recomputed grid cols/rows to subtract margins; added offset_x/offset_y.
+   - Shifted rendering of food, power-ups, and snake segments by offsets to align within the new boundary.
+
 Next Steps
 ----------
 - Refine save/load screens and game state persistence.

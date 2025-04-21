@@ -17,6 +17,11 @@ YELLOW = (255,255,0)
 BLUE = (0,0,255)
 MAGENTA = (255,0,255)
 
+# padding for snake UI
+TOP_MARGIN = 100
+SIDE_MARGIN = 80
+BOTTOM_MARGIN = 100
+
 # Game States
 class GameState(Enum):
     MENU = 1
@@ -197,7 +202,11 @@ def draw_title(surf, font, icon, panel_rect, title_str="PMD742OMNI GAME HUB"):
 # Snake game
 class SnakeGame:
     def __init__(self):
-        self.cell=20; self.cols=WIDTH//self.cell; self.rows=HEIGHT//self.cell
+        self.cell=20
+        self.cols=(WIDTH - 2*SIDE_MARGIN) // self.cell
+        self.rows=(HEIGHT - TOP_MARGIN - BOTTOM_MARGIN) // self.cell
+        self.offset_x = SIDE_MARGIN
+        self.offset_y = TOP_MARGIN
         self.reset()
     def reset(self):
         self.snake=[(self.cols//2,self.rows//2)]
@@ -231,14 +240,24 @@ class SnakeGame:
         if self.active in ("speed","slow"): delay=int(self.move_delay*self.powerspeed)
         if now-self.last_move>delay:
             self.last_move=now
-            head=( (self.snake[0][0]+self.dir[0])%self.cols,
-                   (self.snake[0][1]+self.dir[1])%self.rows)
-            if head in self.snake and self.active!="inv": return ("Snake",self.score)
-            self.snake.insert(0,head)
-            if head==self.food:
-                self.score+=1; self.spawn_food()
-                if random.random()<0.2: self.spawn_power()
-            else: self.snake.pop()
+            # calculate new head position and boundary check
+            new_x = self.snake[0][0] + self.dir[0]
+            new_y = self.snake[0][1] + self.dir[1]
+            if new_x < 0 or new_x >= self.cols or new_y < 0 or new_y >= self.rows:
+                return ("Snake", self.score)
+            head = (new_x, new_y)
+            if head in self.snake and self.active!="inv":
+                return ("Snake", self.score)
+            self.snake.insert(0, head)
+            if head == self.food:
+                self.score += 1
+                # increase speed with each food
+                self.move_delay = max(50, self.move_delay - 5)
+                self.spawn_food()
+                if random.random() < 0.2:
+                    self.spawn_power()
+            else:
+                self.snake.pop()
             for pu in self.powers:
                 if head==pu["pos"]:
                     self.active=pu["type"]; self.powerspeed=pu["mult"]
@@ -249,11 +268,13 @@ class SnakeGame:
         return None
     def draw(self,surf,font):
         surf.fill(BG_COLOR)
-        pygame.draw.rect(surf, LIGHT_CYAN, (self.food[0]*self.cell,self.food[1]*self.cell,self.cell,self.cell))
+        # draw boundary around play area
+        pygame.draw.rect(surf, WHITE, (self.offset_x, self.offset_y, self.cols*self.cell, self.rows*self.cell), 2)
+        pygame.draw.rect(surf, LIGHT_CYAN, (self.food[0]*self.cell + self.offset_x, self.food[1]*self.cell + self.offset_y, self.cell, self.cell))
         for pu in self.powers:
-            pygame.draw.rect(surf,pu["color"],(pu["pos"][0]*self.cell,pu["pos"][1]*self.cell,self.cell,self.cell))
+            pygame.draw.rect(surf,pu["color"],(pu["pos"][0]*self.cell + self.offset_x,pu["pos"][1]*self.cell + self.offset_y,self.cell,self.cell))
         for seg in self.snake:
-            pygame.draw.rect(surf, MED_CYAN, (seg[0]*self.cell,seg[1]*self.cell,self.cell,self.cell))
+            pygame.draw.rect(surf, MED_CYAN, (seg[0]*self.cell + self.offset_x,seg[1]*self.cell + self.offset_y,self.cell,self.cell))
         txt=font.render(f"Score: {self.score}",True,WHITE); surf.blit(txt,(5,5))
         if self.active:
             rem=(self.end_time-pygame.time.get_ticks())//1000
